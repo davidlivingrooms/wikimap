@@ -5,7 +5,7 @@ from pymongo import MongoClient
 
 TITLE_FILE_OFFSET = 1
 line_offset = []
-title_file = open('titles-sorted.txt', "rbq ", 8192)
+title_file = open('titles-sorted.txt', "rb", 8192)
 
 
 def line_to_dict(line):
