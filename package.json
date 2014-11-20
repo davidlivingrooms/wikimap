@@ -6,16 +6,17 @@
     "start": "node ./bin/www"
   },
   "devDependencies": {
-    "gulp": "latest",
     "bower": "latest",
-    "gulp-nodemon": "latest",
-    "gulp-watch": "~0.6.4",
-    "gulp-jshint": "latest",
-    "gulp-livereload": "^1.5.0",
     "browserify": "^6.3.2",
     "browserify-middleware": "^4.1.0",
+    "gulp": "latest",
     "gulp-browserify": "^0.5.0",
-    "vinyl-source-stream": "^1.0.0"
+    "gulp-jshint": "latest",
+    "gulp-livereload": "^1.5.0",
+    "gulp-nodemon": "latest",
+    "gulp-watch": "~0.6.4",
+    "vinyl-source-stream": "^1.0.0",
+    "watchify": "^2.1.1"
   },
   "dependencies": {
     "express": "~4.0.0",
