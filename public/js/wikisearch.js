@@ -4,6 +4,7 @@
  */
 var Bloodhound = require("./libs/typeahead.js/bloodhound");
 var $ = require('jquery');
+var WikiGraph = require("./wikigraph");
 window.jQuery = $; // hack to make typeahead work
 require('typeahead.js');
 
@@ -35,7 +36,12 @@ module.exports = {
     $('.typeahead').typeahead(null, {
       displayKey: 'value',
       source: articles.ttAdapter()
-    });
+    })
+    .bind('typeahead:selected', function(obj, selected, name) {
+      WikiGraph.addNodes();
+      //WikiGraph.addNodes(selected.value);
+    })
+    .off('blur');
   }
 };
 

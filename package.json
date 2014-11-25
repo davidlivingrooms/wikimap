@@ -9,6 +9,7 @@
     "bower": "latest",
     "browserify": "^6.3.2",
     "browserify-middleware": "^4.1.0",
+    "d3-browserify": "^3.4.12",
     "domready": "^1.0.7",
     "gulp": "latest",
     "gulp-browserify": "^0.5.0",
