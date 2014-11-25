@@ -2,35 +2,40 @@
  *
  * Created by david on 11/18/14.
  */
-//Variable to hold autocomplete options
-var keys;
-
-//Load US States as options from CSV - but this can also be created dynamically
-//d3.csv("states.csv",function (csv) {
-//  keys=csv;
-//  start();
-//});
+var Bloodhound = require("./libs/typeahead.js/bloodhound");
+var $ = require('jquery');
+window.jQuery = $; // hack to make typeahead work
+require('typeahead.js');
 
 module.exports = {
 
   initialize: function(){
-    alert("safd");
-    alert(keys);
-  },
+    // Instantiate the Bloodhound suggestion engine
+    var articles = new Bloodhound({
+      datumTokenizer: function (datum) {
+        return Bloodhound.tokenizers.whitespace(datum.value);
+      },
+      queryTokenizer: Bloodhound.tokenizers.whitespace,
+      remote: {
+        url: 'http://localhost:3000/wikimaps/findArticles?title=%QUERY',
+        filter: function (articles) {
+          // Map the remote source JSON array to a JavaScript array
+          return $.map(articles, function (article) {
+            return {
+              value: article.title
+            };
+          });
+        }
+      }
+    });
 
-  onSelect: function(title){
-    alert(title);
-  },
+    articles.initialize();
 
-  start: function(){
-    var mc = autocomplete(document.getElementById('search'))
-      .keys(keys)
-      .dataField("State")
-      .placeHolder("Search States - Start typing here")
-      .width(960)
-      .height(500)
-      .onSelected(onSelect)
-      .render();
+    // Instantiate the Typeahead UI
+    $('.typeahead').typeahead(null, {
+      displayKey: 'value',
+      source: articles.ttAdapter()
+    });
   }
 };
 

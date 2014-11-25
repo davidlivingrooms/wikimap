@@ -17,6 +17,7 @@
 		<script src="js/libs/skel.min.js"></script>
 		<script src="js/libs/skel-layers.min.js"></script>
 		<script src="js/libs/init.js"></script>
+		<script src="js/bundle.js"></script>
 		<noscript>
 			<link rel="stylesheet" href="css/skel.css" />
 			<link rel="stylesheet" href="css/style.css" />
@@ -24,6 +25,7 @@
 		</noscript>
 		<!--[if lte IE 9]><link rel="stylesheet" href="css/ie/v9.css" /><![endif]-->
 		<!--[if lte IE 8]><link rel="stylesheet" href="css/ie/v8.css" /><![endif]-->
+		<link rel="stylesheet" href="css/typeahead.css" />
 	</head>
 	<body>
 
@@ -32,13 +34,8 @@
 
 				<div class="top">
 
-					<!-- Logo -->
-						<div id="logo">
-							<span class="image avatar48"><img src="images/avatar.jpg" alt="" /></span>
-							<h1 id="title">Jane Doe</h1>
-							<p>Hyperspace Engineer</p>
-						</div>
-
+					<!-- Article search bar -->
+					<input class="typeahead form-control" type="text" placeholder="Wikipedia Articles"></input>
 					<!-- Nav -->
 						<nav id="nav">
 							<!--
@@ -125,6 +122,5 @@
 					</ul>
 				
 			</div>
-
 	</body>
 </html>
