@@ -74,18 +74,6 @@ var getRandomLinksFromArticle = function(links){
   return randomLinks;
 };
 
-var createLink = function(source, target){
-  return {"source": source, "target": target, "value": DEFAULT_LINK_LENGTH}
-};
-
-var createLinkObjects = function(parentNode, links){
-  var articleLinks = [];
-  for(var i = 0; i < links.length; i++) {
-    articleLinks.push(createLink(parentNode, links[i]));
-  }
-  return articleLinks;
-};
-
 function addLinks(links, currentArticleLinks) {
   for (var i = 0; i < currentArticleLinks.length; i++){
     links.push(currentArticleLinks[i]);
@@ -106,6 +94,24 @@ var generateWikiMap = function(titleStr, res){
     return false;
   };
 
+  var findNode = function (id) {
+    for (var i in nodes) {
+      if (nodes[i]["id"] === id) return i;
+    }
+  };
+
+  var createLink = function(source, target){
+    return {"source": findNode(source), "sourceName": source, "target": findNode(target), "targetName": target, "value": DEFAULT_LINK_LENGTH}
+  };
+
+  var createLinkObjects = function(parentNode, links){
+    var articleLinks = [];
+    for(var i = 0; i < links.length; i++) {
+      articleLinks.push(createLink(parentNode, links[i]));
+    }
+    return articleLinks;
+  };
+
   var addNode = function(title){
     if (!isNodeInList(title)){
       nodes.push({"id": title});
@@ -113,10 +119,8 @@ var generateWikiMap = function(titleStr, res){
   };
 
   var addArticleToArrays = function(title, randomLinks){
-    //nodes.push({"id": title});
     addNode(title);
     for(var i = 0; i < randomLinks.length; i++) {
-      //nodes.push({"id": randomLinks[i]});
       addNode(randomLinks[i]);
     }
     var currentArticleLinks = createLinkObjects(title, randomLinks);

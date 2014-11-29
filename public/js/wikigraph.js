@@ -20,71 +20,30 @@ function keepNodesOnTop() {
   });
 }
 
-
 function drawGraph(rootTitle) {
-
   graph = new wikiGraph("#svgdiv");
-
-
-  addWikiLinksToGraph(rootTitle, graph);
-  graph.addNode(rootTitle);
-
-  graph.addNode('Sophia');
-  graph.addNode('Daniel');
-  graph.addNode('Ryan');
-  graph.addNode('Lila');
-  graph.addNode('Suzie');
-  graph.addNode('Riley');
-  graph.addNode('Grace');
-  graph.addNode('Dylan');
-  graph.addNode('Mason');
-  graph.addNode('Emma');
-  graph.addNode('Alex');
-  graph.addLink('Alex', 'Ryan', '20');
-  graph.addLink('Sophia', 'Ryan', '20');
-  graph.addLink('Daniel', 'Ryan', '20');
-  graph.addLink('Ryan', 'Lila', '30');
-  graph.addLink('Lila', 'Suzie', '20');
-  graph.addLink('Suzie', 'Riley', '10');
-  graph.addLink('Suzie', 'Grace', '30');
-  graph.addLink('Grace', 'Dylan', '10');
-  graph.addLink('Dylan', 'Mason', '20');
-  graph.addLink('Dylan', 'Emma', '20');
-  graph.addLink('Emma', 'Mason', '10');
-  keepNodesOnTop();
-
-  // callback for the changes in the network
-  var step = -1;
-
-  function nextval() {
-    step++;
-    return 2000 + (1500 * step); // initial time, wait time
-  }
-
-  setTimeout(function () {
-    graph.addLink('Alex', 'Sophia', '20');
-    keepNodesOnTop();
-  }, nextval());
-
-}
-
-function addWikiLinksToGraph(rootTitle)
-{
-  var res = Promise.resolve(
-    $.ajax({
-      url: 'http://localhost:3000/wikimaps/generateWikiMap?title',
-      data: {title: rootTitle},
-      dataType: 'json'
-    }));
-
-  res.then(function(data){
-    console.log(data);
-  });
+  graph.addWikiLinksToGraph(rootTitle, graph);
 }
 
 function wikiGraph()
 {
+  //var nodes = [];
+  var links = [];
+  this.addWikiLinksToGraph = function (rootTitle) {
+    var res = Promise.resolve(
+      $.ajax({
+        url: 'http://localhost:3000/wikimaps/generateWikiMap?title',
+        data: {title: rootTitle},
+        dataType: 'json'
+      }));
 
+    res.then(function(data){
+      console.log(data);
+      links = data.links;
+      start();
+      keepNodesOnTop();
+    });
+  }
   // Add and remove elements on the graph object
   this.addNode = function (id) {
     nodes.push({"id": id});
@@ -144,109 +103,117 @@ function wikiGraph()
     ;
   };
 
-  // set up the D3 visualisation in the specified element
-  var w = 960,
-    h = 450;
+  var start = function() {
+    // set up the D3 visualisation in the specified element
+    var w = 960,
+      h = 450;
 
-  var color = d3.scale.category10();
+    var color = d3.scale.category10();
 
-  var vis = d3.select("#chart")
-    .append("svg:svg")
-    .attr("width", "100%")
-    .attr("height", "100%")
-    .attr("id", "svg")
-    .attr("pointer-events", "all")
-    .attr("viewBox", "0 0 " + w + " " + h)
-    .attr("perserveAspectRatio", "xMinYMid")
-    .append('svg:g');
+    var vis = d3.select("#chart")
+      .append("svg:svg")
+      .attr("width", "100%")
+      .attr("height", "100%")
+      .attr("id", "svg")
+      .attr("pointer-events", "all")
+      .attr("viewBox", "0 0 " + w + " " + h)
+      .attr("perserveAspectRatio", "xMinYMid")
+      .append('svg:g');
 
-  var force = d3.layout.force();
+    var force = d3.layout.force();
 
-  var nodes = force.nodes(),
-    links = force.links();
+    var nodes = {};
 
-  var update = function () {
-    var link = vis.selectAll("line")
-      .data(links, function (d) {
-        return d.source.id + "-" + d.target.id;
-      });
-
-    link.enter().append("line")
-      .attr("id", function (d) {
-        return d.source.id + "-" + d.target.id;
-      })
-      .attr("stroke-width", function (d) {
-        return d.value / 10;
-      })
-      .attr("class", "link");
-    link.append("title")
-      .text(function (d) {
-        return d.value;
-      });
-    link.exit().remove();
-
-    var node = vis.selectAll("g.node")
-      .data(nodes, function (d) {
-        return d.id;
-      });
-
-    var nodeEnter = node.enter().append("g")
-      .attr("class", "node")
-      .call(force.drag);
-
-    nodeEnter.append("svg:circle")
-      .attr("r", 12)
-      .attr("id", function (d) {
-        return "Node;" + d.id;
-      })
-      .attr("class", "nodeStrokeClass")
-      .attr("fill", function (d) {
-        return color(d.id);
-      });
-
-    nodeEnter.append("svg:text")
-      .attr("class", "textClass")
-      .attr("x", 14)
-      .attr("y", ".31em")
-      .text(function (d) {
-        return d.id;
-      });
-
-    node.exit().remove();
-
-    force.on("tick", function () {
-
-      node.attr("transform", function (d) {
-        return "translate(" + d.x + "," + d.y + ")";
-      });
-
-      link.attr("x1", function (d) {
-        return d.source.x;
-      })
-        .attr("y1", function (d) {
-          return d.source.y;
-        })
-        .attr("x2", function (d) {
-          return d.target.x;
-        })
-        .attr("y2", function (d) {
-          return d.target.y;
-        });
+    links.forEach(function(link) {
+      link.source = nodes[link.source] ||
+      (nodes[link.source] = {id: link.source, title: link.sourceName});
+      link.target = nodes[link.target] ||
+      (nodes[link.target] = {id: link.target, title: link.targetName});
+      link.value = +link.value;
     });
 
-    // Restart the force layout.
-    force
-      .gravity(.01)
-      .charge(-80000)
-      .friction(0)
-      .linkDistance(function (d) {
-        return d.value * 10
-      })
-      .size([w, h])
-      .start();
-  };
+    force.nodes(d3.values(nodes));
+    force.links(links);
+    var update = function () {
+      var link = vis.selectAll("line")
+        .data(links, function (d) {
+          return d.source.id + "-" + d.target.id;
+        });
 
+      link.enter().append("line")
+        .attr("id", function (d) {
+          return d.source.id + "-" + d.target.id;
+        })
+        .attr("stroke-width", function (d) {
+          return d.value / 10;
+        })
+        .attr("class", "link");
+      link.append("title")
+        .text(function (d) {
+          return d.value;
+        });
+      link.exit().remove();
 
-  // Make it all go
-  update();
+      var node = vis.selectAll(".node")
+        .data(force.nodes());
+
+      var nodeEnter = node.enter().append("g")
+        .attr("class", "node")
+        .call(force.drag);
+
+      nodeEnter.append("svg:circle")
+        .attr("r", 12)
+        .attr("id", function (d) {
+          return "Node;" + d.id;
+        })
+        .attr("class", "nodeStrokeClass")
+        .attr("fill", function (d) {
+          return color(d.id);
+        });
+
+      nodeEnter.append("svg:text")
+        .attr("class", "textClass")
+        .attr("x", 14)
+        .attr("y", ".31em")
+        .text(function (d) {
+          return d.title;
+        });
+
+      node.exit().remove();
+
+      force.on("tick", function () {
+
+        node.attr("transform", function (d) {
+          return "translate(" + d.x + "," + d.y + ")";
+        });
+
+        link.attr("x1", function (d) {
+          return d.source.x;
+        })
+          .attr("y1", function (d) {
+            return d.source.y;
+          })
+          .attr("x2", function (d) {
+            return d.target.x;
+          })
+          .attr("y2", function (d) {
+            return d.target.y;
+          });
+      });
+
+      // Restart the force layout.
+      force
+        .gravity(.01)
+        .charge(-80000)
+        .friction(0)
+        .linkDistance(function (d) {
+          return d.value * 10
+        })
+        .size([w, h])
+        .start();
+    };
+
+    // Make it all go
+    update();
+  }
 }
