@@ -56,7 +56,7 @@ router.get('/findArticleByTitle', function(req, res) {
  *  Generate Wikimap for article
  */
 router.get('/generateWikiMap', function(req, res) {
-  var titleStr = req.query.title;
+  var titleStr = req.query.title[1];
   generateWikiMap(titleStr, res)
 });
 
@@ -78,7 +78,7 @@ var createLink = function(source, target){
   return {"source": source, "target": target, "value": DEFAULT_LINK_LENGTH}
 };
 
-var createLinks = function(parentNode, links){
+var createLinkObjects = function(parentNode, links){
   var articleLinks = [];
   for(var i = 0; i < links.length; i++) {
     articleLinks.push(createLink(parentNode, links[i]));
@@ -91,21 +91,37 @@ function addLinks(links, currentArticleLinks) {
     links.push(currentArticleLinks[i]);
   }
 }
-var addArticleToArrays = function(article, nodes, links){
-  var title = article.title;
-  var randomLinks = getRandomLinksFromArticle(article.links);
-  nodes.push({"id": title});
-  for(var i = 0; i < randomLinks.length; i++) {
-    nodes.push({"id": randomLinks[i]});
-  }
-  var currentArticleLinks = createLinks(title, randomLinks);
-  addLinks(links, currentArticleLinks);
-};
 
 var generateWikiMap = function(titleStr, res){
 
   var nodes = [];
   var links = [];
+
+  var isNodeInList = function (id) {
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].id === id) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  var addNode = function(title){
+    if (!isNodeInList(title)){
+      nodes.push({"id": title});
+    }
+  };
+
+  var addArticleToArrays = function(title, randomLinks){
+    //nodes.push({"id": title});
+    addNode(title);
+    for(var i = 0; i < randomLinks.length; i++) {
+      //nodes.push({"id": randomLinks[i]});
+      addNode(randomLinks[i]);
+    }
+    var currentArticleLinks = createLinkObjects(title, randomLinks);
+    addLinks(links, currentArticleLinks);
+  };
 
   function doSomethingAsync(titleStr) {
     var completeFunc, errFunc;
@@ -119,13 +135,16 @@ var generateWikiMap = function(titleStr, res){
 
       var promise = getArticlePromise(titleStr);
       promise.then(function(article) {
-        if (nodes.length < MAX_NUMBER_OF_NODES) {
-          addArticleToArrays(article, nodes, links);
-          for (var i = 0; i < article.links.length; i++) {
-            addNodeAndLinksToArrays(article.links[i]);
+        if (article !== null) {
+          if (nodes.length < MAX_NUMBER_OF_NODES) {
+            var randomLinks = getRandomLinksFromArticle(article.links);
+            addArticleToArrays(article.title, randomLinks);
+            for (var i = 0; i < randomLinks.length; i++) {
+              addNodeAndLinksToArrays(randomLinks[i]);
+            }
+          } else {
+            completeFunc()
           }
-        } else {
-          completeFunc()
         }
       }).catch(function(e) {
         console.log(e);
@@ -139,7 +158,10 @@ var generateWikiMap = function(titleStr, res){
   }
 
   doSomethingAsync(titleStr).then(function() {
-      res.json({nodes: nodes, links: links});
+    //res.type('json');
+    res.type('application/json');
+
+    res.json({nodes: nodes, links: links});
     });
 
 };

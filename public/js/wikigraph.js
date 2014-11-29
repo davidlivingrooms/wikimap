@@ -3,6 +3,7 @@
  */
 var d3 = require("d3-browserify");
 var $ = require('jquery');
+var Promise = require('bluebird');
 var graph;
 
 module.exports = {
@@ -69,13 +70,16 @@ function drawGraph(rootTitle) {
 
 function addWikiLinksToGraph(rootTitle)
 {
-  $.ajax({
-    url: 'http://localhost:3000/wikimaps/generateWikiMap?title',
-    data: {title: rootTitle}
-  })
-  .done(function(data) {
+  var res = Promise.resolve(
+    $.ajax({
+      url: 'http://localhost:3000/wikimaps/generateWikiMap?title',
+      data: {title: rootTitle},
+      dataType: 'json'
+    }));
+
+  res.then(function(data){
     console.log(data);
-  })
+  });
 }
 
 function wikiGraph()
@@ -129,7 +133,6 @@ function wikiGraph()
     for (var i in nodes) {
       if (nodes[i]["id"] === id) return nodes[i];
     }
-    ;
   };
 
   var findNodeIndex = function (id) {
