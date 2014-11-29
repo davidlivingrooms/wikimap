@@ -37,9 +37,8 @@ module.exports = {
       displayKey: 'value',
       source: articles.ttAdapter()
     })
-    .bind('typeahead:selected', function(obj, selected, name) {
-      WikiGraph.addNodes();
-      //WikiGraph.addNodes(selected.value);
+    .bind('typeahead:selected', function(obj, selected) {
+      WikiGraph.initializeNewGraph(selected.value);
     })
     .off('blur');
   }

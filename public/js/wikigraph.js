@@ -2,12 +2,13 @@
  * Created by salasd1 on 11/24/2014.
  */
 var d3 = require("d3-browserify");
+var $ = require('jquery');
 var graph;
 
 module.exports = {
-  addNodes: function() {
+  initializeNewGraph: function(rootTitle) {
     d3.select("svg").remove();
-    drawGraph();
+    drawGraph(rootTitle);
   }
 }
 
@@ -18,10 +19,14 @@ function keepNodesOnTop() {
   });
 }
 
-function drawGraph() {
 
-  graph = new myGraph("#svgdiv");
+function drawGraph(rootTitle) {
 
+  graph = new wikiGraph("#svgdiv");
+
+
+  addWikiLinksToGraph(rootTitle, graph);
+  graph.addNode(rootTitle);
 
   graph.addNode('Sophia');
   graph.addNode('Daniel');
@@ -60,36 +65,20 @@ function drawGraph() {
     keepNodesOnTop();
   }, nextval());
 
-  setTimeout(function () {
-    graph.addLink('Sophia', 'Daniel', '20');
-    keepNodesOnTop();
-  }, nextval());
-
-  setTimeout(function () {
-    graph.addLink('Daniel', 'Alex', '20');
-    keepNodesOnTop();
-  }, nextval());
-
-  setTimeout(function () {
-    graph.addLink('Suzie', 'Daniel', '30');
-    keepNodesOnTop();
-  }, nextval());
-
-  setTimeout(function () {
-    graph.removeLink('Dylan', 'Mason');
-    graph.addLink('Dylan', 'Mason', '8');
-    keepNodesOnTop();
-  }, nextval());
-
-  setTimeout(function () {
-    graph.removeLink('Dylan', 'Emma');
-    graph.addLink('Dylan', 'Emma', '8');
-    keepNodesOnTop();
-  }, nextval());
-
 }
 
-function myGraph()
+function addWikiLinksToGraph(rootTitle)
+{
+  $.ajax({
+    url: 'http://localhost:3000/wikimaps/generateWikiMap?title',
+    data: {title: rootTitle}
+  })
+  .done(function(data) {
+    console.log(data);
+  })
+}
+
+function wikiGraph()
 {
 
   // Add and remove elements on the graph object
