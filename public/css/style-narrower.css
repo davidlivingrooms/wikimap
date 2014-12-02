@@ -24,7 +24,7 @@
 
 	.container
 	{
-		padding: 0 2em 0 2em;
+		/*padding: 0 2em 0 2em;*/
 	}
 
 	/* Item */
@@ -122,12 +122,12 @@
 
 		#main > section
 		{
-			padding: 3em 0;
+			/*padding: 3em 0;*/
 		}
 
 		#main section.cover
 		{
-			padding: 4em 0;
+			/*padding: 4em 0;*/
 		}
 	
 /*********************************************************************************/

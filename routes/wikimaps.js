@@ -19,8 +19,8 @@ Promise.promisifyAll(WikiMap);
 Promise.promisifyAll(WikiMap.prototype);
 
 var MAX_NUMBER_OF_LINKS = 4;
-var MAX_NUMBER_OF_NODES = 100;
-var DEFAULT_LINK_LENGTH = 10;
+var MAX_NUMBER_OF_NODES = 200;
+var DEFAULT_LINK_LENGTH = 20;
 
 /**
  * Find articles LIKE passed in title.
@@ -96,7 +96,7 @@ var generateWikiMap = function(titleStr, res){
 
   var findNode = function (id) {
     for (var i in nodes) {
-      if (nodes[i]["id"] === id) return i;
+      if (nodes[i].id === id) return i;
     }
   };
 
@@ -162,9 +162,7 @@ var generateWikiMap = function(titleStr, res){
   }
 
   doSomethingAsync(titleStr).then(function() {
-    //res.type('json');
     res.type('application/json');
-
     res.json({nodes: nodes, links: links});
     });
 

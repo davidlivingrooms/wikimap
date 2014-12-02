@@ -1,8 +1,10 @@
 /**
  * Created by salasd1 on 11/24/2014.
  */
-var d3 = require("d3-browserify");
+var Wave = require('loading-wave');
 var $ = require('jquery');
+var d3 = require('d3');
+var cola = require('cola');
 var Promise = require('bluebird');
 var graph;
 
@@ -27,7 +29,6 @@ function drawGraph(rootTitle) {
 
 function wikiGraph()
 {
-  //var nodes = [];
   var links = [];
   this.addWikiLinksToGraph = function (rootTitle) {
     var res = Promise.resolve(
@@ -37,76 +38,30 @@ function wikiGraph()
         dataType: 'json'
       }));
 
+    var wave = Wave({
+      width: 300,
+      height: 50,
+      n: 10,
+      color: 'steelblue'
+    })
+
+    $("#loadingAnimation").append(wave.el);
+
+    wave.start();
     res.then(function(data){
-      console.log(data);
+      wave.stop();
+      $("#loadingAnimation").remove();
       links = data.links;
       start();
       keepNodesOnTop();
     });
   }
-  // Add and remove elements on the graph object
-  this.addNode = function (id) {
-    nodes.push({"id": id});
-    update();
-  };
-
-  this.removeNode = function (id) {
-    var i = 0;
-    var n = findNode(id);
-    while (i < links.length) {
-      if ((links[i]['source'] == n) || (links[i]['target'] == n)) {
-        links.splice(i, 1);
-      }
-      else i++;
-    }
-    nodes.splice(findNodeIndex(id), 1);
-    update();
-  };
-
-  this.removeLink = function (source, target) {
-    for (var i = 0; i < links.length; i++) {
-      if (links[i].source.id == source && links[i].target.id == target) {
-        links.splice(i, 1);
-        break;
-      }
-    }
-    update();
-  };
-
-  this.removeallLinks = function () {
-    links.splice(0, links.length);
-    update();
-  };
-
-  this.removeAllNodes = function () {
-    nodes.splice(0, links.length);
-    update();
-  };
-
-  this.addLink = function (source, target, value) {
-    links.push({"source": findNode(source), "target": findNode(target), "value": value});
-    update();
-  };
-
-  var findNode = function (id) {
-    for (var i in nodes) {
-      if (nodes[i]["id"] === id) return nodes[i];
-    }
-  };
-
-  var findNodeIndex = function (id) {
-    for (var i = 0; i < nodes.length; i++) {
-      if (nodes[i].id == id) {
-        return i;
-      }
-    }
-    ;
-  };
 
   var start = function() {
     // set up the D3 visualisation in the specified element
-    var w = 960,
-      h = 450;
+    var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+    var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+    var active = d3.select(null);
 
     var color = d3.scale.category10();
 
@@ -120,7 +75,13 @@ function wikiGraph()
       .attr("perserveAspectRatio", "xMinYMid")
       .append('svg:g');
 
-    var force = d3.layout.force();
+    var g = vis.append("g");
+
+    vis.on("click", stopped, true);
+
+    var force = cola.d3adaptor()
+      .linkDistance(30)
+      .size([w, h]);
 
     var nodes = {};
 
@@ -134,8 +95,8 @@ function wikiGraph()
 
     force.nodes(d3.values(nodes));
     force.links(links);
-    var update = function () {
-      var link = vis.selectAll("line")
+
+      var link = g.selectAll("line")
         .data(links, function (d) {
           return d.source.id + "-" + d.target.id;
         });
@@ -154,15 +115,17 @@ function wikiGraph()
         });
       link.exit().remove();
 
-      var node = vis.selectAll(".node")
+      var node = g.selectAll(".node")
         .data(force.nodes());
 
-      var nodeEnter = node.enter().append("g")
+        var nodeEnter = node.enter().append("g")
         .attr("class", "node")
         .call(force.drag);
 
+      nodeEnter.on("click", clicked);
+
       nodeEnter.append("svg:circle")
-        .attr("r", 12)
+        .attr("r", 8)
         .attr("id", function (d) {
           return "Node;" + d.id;
         })
@@ -179,9 +142,54 @@ function wikiGraph()
           return d.title;
         });
 
+      var zoom = d3.behavior.zoom()
+        .translate([0, 0])
+        .scale(1)
+        .scaleExtent([1, 8])
+        .on("zoom", zoomed);
+
+      vis.call(zoom) // delete this line to disable free zooming
+        .call(zoom.event);
+
+      function zoomed() {
+        g.style("stroke-width", 1.5 / d3.event.scale + "px");
+        g.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+      }
+
+      function clicked(d) {
+        if (active.node() === this) return reset();
+        active.classed("active", false);
+        active = d3.select(this).classed("active", true);
+
+        var x = d.px;
+        var y = d.py;
+        var scale = 2 / Math.max(d.px / w, d.py / h);
+        var translate = [w / 2 - scale * x, h / 2 - scale * y];
+
+        vis.transition()
+          .duration(750)
+          .call(zoom.translate(translate).scale(scale).event);
+      }
+
+      function reset() {
+        active.classed("active", false);
+        active = d3.select(null);
+
+        vis.transition()
+          .duration(750)
+          .call(zoom.translate([0, 0]).scale(1).event);
+      }
+
+      function stopped() {
+        if (d3.event.defaultPrevented) d3.event.stopPropagation();
+      }
+
       node.exit().remove();
 
       force.on("tick", function () {
+
+        nodes[0].x = w / 2;
+        nodes[0].y = h / 2;
 
         node.attr("transform", function (d) {
           return "translate(" + d.x + "," + d.y + ")";
@@ -201,19 +209,11 @@ function wikiGraph()
           });
       });
 
-      // Restart the force layout.
-      force
-        .gravity(.01)
-        .charge(-80000)
-        .friction(0)
-        .linkDistance(function (d) {
-          return d.value * 10
-        })
-        .size([w, h])
-        .start();
-    };
+    //Start the layout
+    force
+      .linkDistance(50)
+      .avoidOverlaps(true)
+      .start();
 
-    // Make it all go
-    update();
   }
 }

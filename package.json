@@ -32,5 +32,12 @@
     "ejs": "~0.8.5",
     "stylus": "0.42.3",
     "mongoose": "^3.8.19"
+  },
+  "browserify-shim": {
+    "cola": "global:cola",
+    "d3": "global:d3"
+  },
+  "browserify": {
+    "transform": [ "browserify-shim" ]
   }
 }
