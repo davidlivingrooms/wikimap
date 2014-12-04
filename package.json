@@ -35,7 +35,8 @@
   },
   "browserify-shim": {
     "cola": "global:cola",
-    "d3": "global:d3"
+    "d3": "global:d3",
+    "WIKIPEDIA": "global:WIKIPEDIA"
   },
   "browserify": {
     "transform": [ "browserify-shim" ]

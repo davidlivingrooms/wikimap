@@ -122,10 +122,10 @@ function wikiGraph()
         .attr("class", "node")
         .call(force.drag);
 
-      nodeEnter.on("click", clicked);
+      nodeEnter.on("dblclick", doubleClicked);
 
       nodeEnter.append("svg:circle")
-        .attr("r", 8)
+        .attr("r", 12)
         .attr("id", function (d) {
           return "Node;" + d.id;
         })
@@ -134,29 +134,44 @@ function wikiGraph()
           return color(d.id);
         });
 
-      nodeEnter.append("svg:text")
-        .attr("class", "textClass")
-        .attr("x", 14)
-        .attr("y", ".31em")
-        .text(function (d) {
-          return d.title;
-        });
+    nodeEnter.append("text")
+      .attr("class", "textClass")
+      .text(function(d) { return d.title; })
+      .style("font-size", "12px")
+      .each(getSize)
+
+    function getSize(d) {
+      var bbox = this.getBBox(),
+        cbbox = this.parentNode.getBBox(),
+        scale = Math.min(cbbox.width/bbox.width, cbbox.height/bbox.height);
+      d.scale = scale;
+    }
 
       var zoom = d3.behavior.zoom()
         .translate([0, 0])
         .scale(1)
-        .scaleExtent([1, 8])
+        //.scaleExtent([1, 8])
+        .scaleExtent([1, 3])
         .on("zoom", zoomed);
 
-      vis.call(zoom) // delete this line to disable free zooming
-        .call(zoom.event);
+    //vis.call(zoom) // delete this/ line to disable free zooming
+    //  .call(zoom.event);
 
       function zoomed() {
         g.style("stroke-width", 1.5 / d3.event.scale + "px");
         g.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
       }
 
-      function clicked(d) {
+      function doubleClicked(d) {
+
+        //var callback = function(info){
+        //  //$('#articleContent').append(info);
+        //};
+        //
+        //var info = WIKIPEDIA.getData('http://en.wikipedia.org/wiki/Invasion_of_Normandy', callback);
+
+        //getArticle(d);
+
         if (active.node() === this) return reset();
         active.classed("active", false);
         active = d3.select(this).classed("active", true);
@@ -213,7 +228,6 @@ function wikiGraph()
     force
       .linkDistance(50)
       .avoidOverlaps(true)
-      .start();
-
+      .start(10,15,20);
   }
 }

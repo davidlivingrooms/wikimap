@@ -9,10 +9,10 @@
 }
 .textClass {
     stroke: #323232;
-    font-family: "Lucida Grande", "Droid Sans", Arial, Helvetica, sans-serif;
+    font-family: "Luscida Grande", "Droid Sans", Arial, Helvetica, sans-serif;
     font-weight: normal;
     stroke-width: .5;
-    font-size: 14px;
+    /*font-size: 8px;*/
 }
 
 .graphContainer, .section, .graph {
