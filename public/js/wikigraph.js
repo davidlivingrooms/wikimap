@@ -62,8 +62,12 @@ function wikiGraph()
     var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
     var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
     var active = d3.select(null);
-
     var color = d3.scale.category10();
+    var nodeMouseDown;
+
+    var zoom = d3.behavior.zoom()
+      .scale(1)
+      .scaleExtent([1, 3]);
 
     var vis = d3.select("#chart")
       .append("svg:svg")
@@ -73,7 +77,8 @@ function wikiGraph()
       .attr("pointer-events", "all")
       .attr("viewBox", "0 0 " + w + " " + h)
       .attr("perserveAspectRatio", "xMinYMid")
-      .append('svg:g');
+      .call(zoom.on("zoom", redraw))
+    .append('svg:g');
 
     var g = vis.append("g");
 
@@ -120,11 +125,13 @@ function wikiGraph()
 
         var nodeEnter = node.enter().append("g")
         .attr("class", "node")
-        .call(force.drag);
+        .call(force.drag);//TODO ENABLE
 
-      nodeEnter.on("dblclick", doubleClicked);
+      nodeEnter.on("dblclick", doubleClicked)
+        .on("mousedown", function () { nodeMouseDown = true; }) // recording the mousedown state allows us to differentiate dragging from panning
+        .on("mouseup", function () { nodeMouseDown = false; });
 
-      nodeEnter.append("svg:circle")
+    nodeEnter.append("svg:circle")
         .attr("r", 12)
         .attr("id", function (d) {
           return "Node;" + d.id;
@@ -147,15 +154,7 @@ function wikiGraph()
       d.scale = scale;
     }
 
-      var zoom = d3.behavior.zoom()
-        .translate([0, 0])
-        .scale(1)
-        //.scaleExtent([1, 8])
-        .scaleExtent([1, 3])
-        .on("zoom", zoomed);
-
-    //vis.call(zoom) // delete this/ line to disable free zooming
-    //  .call(zoom.event);
+    vis.call(zoom.event);
 
       function zoomed() {
         g.style("stroke-width", 1.5 / d3.event.scale + "px");
@@ -172,6 +171,7 @@ function wikiGraph()
 
         //getArticle(d);
 
+        d3.event.stopPropagation();
         if (active.node() === this) return reset();
         active.classed("active", false);
         active = d3.select(this).classed("active", true);
@@ -223,6 +223,13 @@ function wikiGraph()
             return d.target.y;
           });
       });
+
+    function redraw(transition) {
+      // if mouse down then we are dragging not panning
+      if (nodeMouseDown) return;
+      (transition ? vis.transition() : vis)
+        .attr("transform", "translate(" + zoom.translate() + ") scale(" + zoom.scale() + ")");
+    }
 
     //Start the layout
     force
