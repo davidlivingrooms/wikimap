@@ -6,9 +6,11 @@
     "start": "node ./bin/www"
   },
   "devDependencies": {
+    "bluebird": "^2.8.0",
     "bower": "latest",
     "browserify": "^6.3.2",
     "browserify-middleware": "^4.1.0",
+    "browserify-shim": "^3.8.2",
     "d3-browserify": "^3.4.12",
     "domready": "^1.0.7",
     "gulp": "latest",
@@ -39,6 +41,8 @@
     "WIKIPEDIA": "global:WIKIPEDIA"
   },
   "browserify": {
-    "transform": [ "browserify-shim" ]
+    "transform": [
+      "browserify-shim"
+    ]
   }
 }
