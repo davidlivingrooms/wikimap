@@ -1,39 +1,42 @@
 'use strict';
 var express = require('express');
 var router = express.Router();
-var mongoose = require('mongoose');
 var Promise = require('bluebird');
-
-Promise.promisifyAll(require("mongoose"));
-
-mongoose.connect('mongodb://localhost/wikimapper');
-
-var wikiMapSchema = {
-  title: String,
-  titles: [String]
-};
-
-var WikiMap = mongoose.model('Wikimap', wikiMapSchema, 'links');
-
-Promise.promisifyAll(WikiMap);
-Promise.promisifyAll(WikiMap.prototype);
+var Oriento = require('oriento');
 
 var MAX_NUMBER_OF_LINKS = 4;
 var MAX_NUMBER_OF_NODES = 200;
 var DEFAULT_LINK_LENGTH = 20;
 
+var server = Oriento({
+  host: 'localhost',
+  port: 2424,
+  username: 'root',
+  password: 'password'
+});
+
+var graph = server.use("wikilinks");
+
 /**
  * Find articles LIKE passed in title.
  */
 router.get('/findArticles', function(req, res) {
-  var titleStr = req.query.title;
-  if (titleStr != null){
-    var queryStr = titleStr.replace(/ /g, "_");
-    var regexp = new RegExp('^' + queryStr + ".*", 'i');
-    WikiMap.find({title: regexp})
-    .limit(10)
-    .exec(function(err, articles){
-      res.send(articles);
+  var titleStr = trim(req.query.title);
+  var titleStrEndKey = titleStr + "z";
+  var queryStr = "select key from index:Article.title where key >= '" + titleStr + "' and key <= '" +
+      titleStrEndKey + "' limit 10";
+  if (titleStr !== null){
+
+    var utils = require('oriento').utils;
+    graph.exec(utils.prepare(queryStr, {
+      params: {
+        //keyTitle: titleStr,
+        //keyTitleAltered: titleStrEndKey
+      }
+      //limit: 10
+    })).then(function (response){
+      console.log(response.results);
+      res.send(response.results);
     });
   }
   else{
@@ -42,26 +45,15 @@ router.get('/findArticles', function(req, res) {
 });
 
 /**
- * Find a single article by title.
- */
-router.get('/findArticleByTitle', function(req, res) {
-  var titleStr = req.query.title;
-  WikiMap.find({title: titleStr}).limit(1)
-  .exec(function(err, article){
-    res.send(article);
-  });
-})
-
-/**
  *  Generate Wikimap for article
  */
 router.get('/generateWikiMap', function(req, res) {
   var titleStr = req.query.title[1];
-  generateWikiMap(titleStr, res)
+  generateWikiMap(titleStr, res);
 });
 
 var getArticlePromise = function(titleStr){
-  return WikiMap.findOne({title:titleStr}).lean().execAsync();
+  //return WikiMap.findOne({title:titleStr}).lean().execAsync();
 };
 
 var getRandomLinksFromArticle = function(links){
@@ -96,12 +88,14 @@ var generateWikiMap = function(titleStr, res){
 
   var findNode = function (id) {
     for (var i in nodes) {
-      if (nodes[i].id === id) return i;
+      if (nodes[i].id === id) {
+        return i;
+      }
     }
   };
 
   var createLink = function(source, target){
-    return {"source": findNode(source), "sourceName": source, "target": findNode(target), "targetName": target, "value": DEFAULT_LINK_LENGTH}
+    return {"source": findNode(source), "sourceName": source, "target": findNode(target), "targetName": target, "value": DEFAULT_LINK_LENGTH};
   };
 
   var createLinkObjects = function(parentNode, links){
@@ -147,7 +141,7 @@ var generateWikiMap = function(titleStr, res){
               addNodeAndLinksToArrays(randomLinks[i]);
             }
           } else {
-            completeFunc()
+            completeFunc();
           }
         }
       }).catch(function(e) {
@@ -168,5 +162,11 @@ var generateWikiMap = function(titleStr, res){
 
 };
 
+// remove multiple, leading or trailing spaces
+function trim(s) {
+  s = s.replace(/(^\s*)|(\s*$)/gi,"");
+  s = s.replace(/[ ]{2,}/gi," ");
+  s = s.replace(/\n /,"\n"); return s;
+}
 
 module.exports = router;

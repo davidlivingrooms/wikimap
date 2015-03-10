@@ -1,7 +1,8 @@
 /**
  * Created by salasd1 on 11/24/2014.
  */
-var Wave = require('loading-wave');
+'use strict';
+//var Wave = require('loading-wave');
 var $ = require('jquery');
 var d3 = require('d3');
 var cola = require('cola');
@@ -38,24 +39,24 @@ function wikiGraph()
         dataType: 'json'
       }));
 
-    var wave = Wave({
-      width: 300,
-      height: 50,
-      n: 10,
-      color: 'steelblue'
-    })
+    //var wave = Wave({
+    //  width: 300,
+    //  height: 50,
+    //  n: 10,
+    //  color: 'steelblue'
+    //})
 
-    $("#loadingAnimation").append(wave.el);
+    //$("#loadingAnimation").append(wave.el);
 
-    wave.start();
+    //wave.start();
     res.then(function(data){
-      wave.stop();
+      //wave.stop();
       $("#loadingAnimation").remove();
       links = data.links;
       start();
       keepNodesOnTop();
     });
-  }
+  };
 
   var start = function() {
     // set up the D3 visualisation in the specified element
@@ -145,7 +146,7 @@ function wikiGraph()
       .attr("class", "textClass")
       .text(function(d) { return d.title; })
       .style("font-size", "12px")
-      .each(getSize)
+      .each(getSize);
 
     function getSize(d) {
       var bbox = this.getBBox(),
@@ -196,7 +197,9 @@ function wikiGraph()
       }
 
       function stopped() {
-        if (d3.event.defaultPrevented) d3.event.stopPropagation();
+        if (d3.event.defaultPrevented){
+          d3.event.stopPropagation();
+        }
       }
 
       node.exit().remove();
@@ -226,7 +229,9 @@ function wikiGraph()
 
     function redraw(transition) {
       // if mouse down then we are dragging not panning
-      if (nodeMouseDown) return;
+      if (nodeMouseDown){
+        return;
+      }
       (transition ? vis.transition() : vis)
         .attr("transform", "translate(" + zoom.translate() + ") scale(" + zoom.scale() + ")");
     }
@@ -236,5 +241,5 @@ function wikiGraph()
       .linkDistance(50)
       .avoidOverlaps(true)
       .start(10,15,20);
-  }
+  };
 }
