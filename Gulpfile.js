@@ -11,7 +11,7 @@ var gulp = require('gulp'),
 
 var production = process.env.NODE_ENV === 'production';
 
-function handleError(task) {
+function handleError() {
   return function(err) {
     console.log(err);
   };
@@ -32,7 +32,7 @@ function scripts(watch) {
 
   rebundle = function() {
     var stream = bundler.bundle();
-    stream.on('error', handleError('Browserify'));
+    stream.on('error', handleError());
     stream = stream.pipe(source('bundle.js'));
     return stream.pipe(gulp.dest('./public/js'));
   };

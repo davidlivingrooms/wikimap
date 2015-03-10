@@ -8,7 +8,7 @@ var MAX_NUMBER_OF_LINKS = 4;
 var MAX_NUMBER_OF_NODES = 200;
 var DEFAULT_LINK_LENGTH = 20;
 
-var server = Oriento({
+var server = new Oriento({
   host: 'localhost',
   port: 2424,
   username: 'root',
@@ -95,7 +95,7 @@ var generateWikiMap = function(titleStr, res){
   };
 
   var createLink = function(source, target){
-    return {"source": findNode(source), "sourceName": source, "target": findNode(target), "targetName": target, "value": DEFAULT_LINK_LENGTH};
+    return {'source': findNode(source), 'sourceName': source, 'target': findNode(target), 'targetName': target, 'value': DEFAULT_LINK_LENGTH};
   };
 
   var createLinkObjects = function(parentNode, links){
@@ -108,7 +108,7 @@ var generateWikiMap = function(titleStr, res){
 
   var addNode = function(title){
     if (!isNodeInList(title)){
-      nodes.push({"id": title});
+      nodes.push({'id': title});
     }
   };
 
@@ -164,8 +164,8 @@ var generateWikiMap = function(titleStr, res){
 
 // remove multiple, leading or trailing spaces
 function trim(s) {
-  s = s.replace(/(^\s*)|(\s*$)/gi,"");
-  s = s.replace(/[ ]{2,}/gi," ");
+  s = s.replace(/(^\s*)|(\s*$)/gi,'');
+  s = s.replace(/[ ]{2,}/gi,' ');
   s = s.replace(/\n /,"\n"); return s;
 }
 
