@@ -11,11 +11,12 @@ var DEFAULT_LINK_LENGTH = 20;
 var server = new Oriento({
   host: 'localhost',
   port: 2424,
-  username: 'root',
-  password: 'password'
+  username: 'admin',
+  password: 'admin'
 });
 
 var graph = server.use("wikilinks");
+console.log('Using database:' + graph.name);
 
 /**
  * Find articles LIKE passed in title.
