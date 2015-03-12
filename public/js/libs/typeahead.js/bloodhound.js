@@ -710,6 +710,7 @@
                 return _.bind(this.get, this);
             }
         });
+        module.exports = Bloodhound;
         return Bloodhound;
         function getSorter(sortFn) {
             return _.isFunction(sortFn) ? sort : noSort;
