@@ -11,11 +11,11 @@ var DEFAULT_LINK_LENGTH = 20;
 var server = new Oriento({
   host: 'localhost',
   port: 2424,
-  username: 'admin',
-  password: 'admin'
+  username: 'root',
+  password: 'password'
 });
 
-var graph = server.use("wikilinks");
+var graph = server.use("wikipediaOrientDb");
 console.log('Using database:' + graph.name);
 
 /**
@@ -24,21 +24,32 @@ console.log('Using database:' + graph.name);
 router.get('/findArticles', function(req, res) {
   var titleStr = trim(req.query.title);
   var titleStrEndKey = titleStr + "z";
-  var queryStr = "select key from index:Article.title where key >= '" + titleStr + "' and key <= '" +
+  var queryStr = "select key from index:V.title where key >= '" + titleStr + "' and key <= '" +
       titleStrEndKey + "' limit 10";
+    console.log(queryStr);
   if (titleStr !== null){
 
     var utils = require('oriento').utils;
-    graph.exec(utils.prepare(queryStr, {
-      params: {
-        //keyTitle: titleStr,
-        //keyTitleAltered: titleStrEndKey
-      }
-      //limit: 10
-    })).then(function (response){
-      console.log(response.results);
-      res.send(response.results);
-    });
+    //graph.exec(utils.prepare(queryStr, {
+    //  params: {
+    //    //keyTitle: titleStr,
+    //    //keyTitleAltered: titleStrEndKey
+    //  }
+    //  //limit: 10
+    //})).then(function (response){
+    //  console.log(response.results);
+    //  res.send(response.results);
+    //});
+      graph.query(queryStr, {
+          params: {
+              //keyTitle: titleStr,
+              //keyTitleAltered: titleStrEndKey
+          }
+          //limit: 10
+      }).then(function (response){
+          console.log(response);
+          res.json(response);
+      });
   }
   else{
     res.send(null);

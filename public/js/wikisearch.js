@@ -23,7 +23,7 @@ module.exports = {
           // Map the remote source JSON array to a JavaScript array
           return $.map(articles, function (article) {
             return {
-              value: article.title
+              value: article.key
             };
           });
         }
