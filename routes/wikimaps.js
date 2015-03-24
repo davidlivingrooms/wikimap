@@ -24,32 +24,18 @@ console.log('Using database:' + graph.name);
 router.get('/findArticles', function(req, res) {
   var titleStr = trim(req.query.title);
   var titleStrEndKey = titleStr + "z";
-  var queryStr = "select key from index:V.title where key >= '" + titleStr + "' and key <= '" +
-      titleStrEndKey + "' limit 10";
-    console.log(queryStr);
+  var queryStr = "select key from index:V.title where key >= '" + titleStr + "' and key <= '" + titleStrEndKey + "' limit 10";
   if (titleStr !== null){
-
-    var utils = require('oriento').utils;
-    //graph.exec(utils.prepare(queryStr, {
-    //  params: {
-    //    //keyTitle: titleStr,
-    //    //keyTitleAltered: titleStrEndKey
-    //  }
-    //  //limit: 10
-    //})).then(function (response){
-    //  console.log(response.results);
-    //  res.send(response.results);
-    //});
-      graph.query(queryStr, {
-          params: {
-              //keyTitle: titleStr,
-              //keyTitleAltered: titleStrEndKey
-          }
-          //limit: 10
-      }).then(function (response){
-          console.log(response);
-          res.json(response);
-      });
+    graph.query(queryStr, {
+        params: {
+            //keyTitle: titleStr,
+            //keyTitleAltered: titleStrEndKey
+        }
+        //limit: 10
+    }).then(function (response){
+        console.log(response);
+        res.json(response);
+    });
   }
   else{
     res.send(null);
@@ -65,15 +51,15 @@ router.get('/generateWikiMap', function(req, res) {
 });
 
 var getArticlePromise = function(titleStr){
-  //return WikiMap.findOne({title:titleStr}).lean().execAsync();
+  return graph.select().from('V').where({title: titleStr}).limit(1).fetch('out_contains:1 out_contains.in:1').all();
 };
 
 var getRandomLinksFromArticle = function(links){
   var randomLinks = [];
+  var linkRIDS = Object.getOwnPropertyNames(links);
   for(var i = 0; i < MAX_NUMBER_OF_LINKS; i++){
-    //TODO what happens when not enough links
-    var randomlink = links.splice(Math.floor(Math.random() * links.length),1)[0];
-    randomLinks.push(randomlink);
+    var randomLinkRID = linkRIDS.splice(Math.floor(Math.random() * linkRIDS.length),1)[0];
+    randomLinks.push(links[randomLinkRID].title);
   }
   return randomLinks;
 };
@@ -142,13 +128,13 @@ var generateWikiMap = function(titleStr, res){
     });
 
     function addNodeAndLinksToArrays(titleStr) {
-
       var promise = getArticlePromise(titleStr);
       promise.then(function(article) {
+        var prefetchedRecords = article[0].out_contains._prefetchedRecords;
         if (article !== null) {
           if (nodes.length < MAX_NUMBER_OF_NODES) {
-            var randomLinks = getRandomLinksFromArticle(article.links);
-            addArticleToArrays(article.title, randomLinks);
+            var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
+            addArticleToArrays(article[0].title, randomLinks);
             for (var i = 0; i < randomLinks.length; i++) {
               addNodeAndLinksToArrays(randomLinks[i]);
             }
