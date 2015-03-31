@@ -33,13 +33,31 @@ router.get('/findArticles', function(req, res) {
         }
         //limit: 10
     }).then(function (response){
-        console.log(response);
         res.json(response);
     });
   }
   else{
     res.send(null);
   }
+});
+
+router.get('/getLinksForArticle', function(req, res) {
+  var titleStr = req.query.title[1];
+  var promise = getArticlePromise(titleStr);
+  var nodes = [];
+  var links = [];
+  promise.then(function(article) {
+    if (article && article[0] && article[0].out_contains) {
+      var prefetchedRecords = article[0].out_contains._prefetchedRecords;
+      var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
+      addArticleToArrays(article[0].title, randomLinks, nodes, links);
+      res.type('application/json');
+      res.json({nodes: nodes, links: links});
+    }
+  }).catch(function(e) {
+    console.log(e);
+  });
+
 });
 
 /**
@@ -70,54 +88,56 @@ function addLinks(links, currentArticleLinks) {
   }
 }
 
+var isNodeInList = function (id, nodes) {
+  for (var i = 0; i < nodes.length; i++) {
+    if (nodes[i].id === id) {
+      return true;
+    }
+  }
+  return false;
+};
+
+var findNode = function (id, nodes) {
+  for (var i in nodes) {
+    if (nodes[i].id === id) {
+      return i;
+    }
+  }
+};
+
+var createLink = function(source, target, nodes, links){
+  return {'source': findNode(source), 'sourceName': source, 'target': findNode(target, nodes, links), 'targetName': target, 'value': DEFAULT_LINK_LENGTH};
+};
+
+var createLinkObjects = function(parentNode, nodes, links){
+  var articleLinks = [];
+  for(var i = 0; i < links.length; i++) {
+    articleLinks.push(createLink(parentNode, links[i], nodes, links));
+  }
+  return articleLinks;
+};
+
+var addNode = function(title, nodes){
+  if (!isNodeInList(title, nodes)){
+    nodes.push({'id': title});
+  }
+};
+
+var addArticleToArrays = function(title, randomLinks, nodes, links){
+  addNode(title, nodes);
+  for(var i = 0; i < randomLinks.length; i++) {
+    addNode(randomLinks[i], nodes);
+  }
+  var currentArticleLinks = createLinkObjects(title, nodes, randomLinks);
+  addLinks(links, currentArticleLinks);
+};
+
 var generateWikiMap = function(titleStr, res){
 
   var nodes = [];
   var links = [];
 
-  var isNodeInList = function (id) {
-    for (var i = 0; i < nodes.length; i++) {
-      if (nodes[i].id === id) {
-        return true;
-      }
-    }
-    return false;
-  };
 
-  var findNode = function (id) {
-    for (var i in nodes) {
-      if (nodes[i].id === id) {
-        return i;
-      }
-    }
-  };
-
-  var createLink = function(source, target){
-    return {'source': findNode(source), 'sourceName': source, 'target': findNode(target), 'targetName': target, 'value': DEFAULT_LINK_LENGTH};
-  };
-
-  var createLinkObjects = function(parentNode, links){
-    var articleLinks = [];
-    for(var i = 0; i < links.length; i++) {
-      articleLinks.push(createLink(parentNode, links[i]));
-    }
-    return articleLinks;
-  };
-
-  var addNode = function(title){
-    if (!isNodeInList(title)){
-      nodes.push({'id': title});
-    }
-  };
-
-  var addArticleToArrays = function(title, randomLinks){
-    addNode(title);
-    for(var i = 0; i < randomLinks.length; i++) {
-      addNode(randomLinks[i]);
-    }
-    var currentArticleLinks = createLinkObjects(title, randomLinks);
-    addLinks(links, currentArticleLinks);
-  };
 
   function doSomethingAsync(titleStr) {
     var completeFunc, errFunc;
@@ -130,16 +150,19 @@ var generateWikiMap = function(titleStr, res){
     function addNodeAndLinksToArrays(titleStr) {
       var promise = getArticlePromise(titleStr);
       promise.then(function(article) {
-        var prefetchedRecords = article[0].out_contains._prefetchedRecords;
-        if (article !== null) {
-          if (nodes.length < MAX_NUMBER_OF_NODES) {
-            var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
-            addArticleToArrays(article[0].title, randomLinks);
-            for (var i = 0; i < randomLinks.length; i++) {
-              addNodeAndLinksToArrays(randomLinks[i]);
+        if (article && article[0] && article[0].out_contains) {
+          var prefetchedRecords = article[0].out_contains._prefetchedRecords;
+          if (article !== null) {
+            if (nodes.length < MAX_NUMBER_OF_NODES) {
+              var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
+              addArticleToArrays(article[0].title, randomLinks);
+              for (var i = 0; i < randomLinks.length; i++) {
+                addNodeAndLinksToArrays(randomLinks[i]);
+              }
             }
-          } else {
-            completeFunc();
+            else {
+              completeFunc();
+            }
           }
         }
       }).catch(function(e) {
