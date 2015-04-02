@@ -2,12 +2,11 @@
  * Created by salasd1 on 11/24/2014.
  */
 'use strict';
-//var Wave = require('loading-wave');
 var $ = require('jquery');
 var d3 = require('d3');
 var cola = require('cola');
 var Promise = require('bluebird');
-var Graph = require('graph');
+var Graph = require('./graph.js');
 var graph;
 
 module.exports = {
@@ -40,18 +39,7 @@ function wikiGraph()
         dataType: 'json'
       }));
 
-    //var wave = Wave({
-    //  width: 300,
-    //  height: 50,
-    //  n: 10,
-    //  color: 'steelblue'
-    //})
-
-    //$("#loadingAnimation").append(wave.el);
-
-    //wave.start();
     res.then(function(data){
-      //wave.stop();
       $("#loadingAnimation").remove();
       links = data.links;
       start(rootTitle);
@@ -124,8 +112,8 @@ function wikiGraph()
     var viewgraph = { nodes: [], links: [] };
     var nodeWidth = 30, nodeHeight = 35;
     // get first node
-    var d = modelgraph.getNode();
-    $.when(d).then(function (startNode) {
+    var d = modelgraph.getNode(rootTitle, null, addViewNode);
+    d.then(function (startNode) {
       addViewNode(startNode);
       refocus(startNode);
     });

@@ -2,15 +2,12 @@
  * Created by david on 3/30/2015.
  */
 
-function Node() {
+function Node(title, rid) {
+  this.title = title;
+  this.id = rid;
+  this.degree = 0;
 
-  function Node(title, rid) {
-    this.title = title;
-    this.id = rid;
-    this.degree = 0;
-  }
-
-  Node.prototype.title = function () {
+  Node.prototype.getTitle = function () {
     return this.title.toString();
   };
 
