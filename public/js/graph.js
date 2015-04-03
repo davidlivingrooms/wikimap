@@ -23,11 +23,17 @@ function Graph() {
 
     var node = this.addNode(title, rid);
     addViewNode(node);
-    return articlePromise(title, rid);
+    var promise = articlePromise(title, rid);
+    promise.then(function(data) {
+      data.nodes.map(function(nodeObject) {
+        node.links.push(nodeObject);
+      });
+    });
+    return promise;
   };
 
   Graph.prototype.addEdge = function (fromNode, toNode) {
-    var edge = new Edge(fromTitle, toTitle);
+    var edge = new Edge(fromNode.title, toNode.title);
     var edgeName = edge.toString();
     if (!(edgeName in this.edges)) {
       this.edges[edgeName] = edge;
@@ -38,6 +44,9 @@ function Graph() {
 
   Graph.prototype.expandNeighbours = function (node, callback) {
     var _this = this;
+    node.links.map(function (nodeObject) {
+      _this.addEdge(node, nodeObject);
+    });
     //TODO implement
   };
 }

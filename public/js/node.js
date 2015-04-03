@@ -4,6 +4,7 @@
 
 function Node(title, rid) {
   this.title = title;
+  this.links = [];
   this.id = rid;
   this.degree = 0;
 

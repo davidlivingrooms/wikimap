@@ -133,14 +133,15 @@ function wikiGraph()
     function refreshViewGraph() {
       viewgraph.links = [];
       viewgraph.nodes.forEach(function (v) {
-        var fullyExpanded = modelgraph.fullyExpanded(v);
-        v.colour = fullyExpanded ? "darkgrey" : red
-        if (!v.cast) return;
+        //var fullyExpanded = modelgraph.fullyExpanded(v);
+        //v.colour = fullyExpanded ? "darkgrey" : red
+        if (!v.links) return;
       });
 
       Object.keys(modelgraph.edges).forEach(function (e) {
         var l = modelgraph.edges[e];
-        var u = modelgraph.nodes[l.source], v = modelgraph.nodes[l.target];
+        var u = modelgraph.nodes[l.source];
+        var v = modelgraph.nodes[l.target];
         if (inView(u) && inView(v)) viewgraph.links.push({ source: u, target: v });
         if (inView(u) && !inView(v)) u.colour = red;
         if (!inView(u) && inView(v)) v.colour = red;
@@ -175,7 +176,9 @@ function wikiGraph()
       dview.selectAll(".spike").remove();
     }
 
-    function inView(v) { return typeof v.viewgraphid !== 'undefined'; }
+    function inView(v) {
+      return typeof v.viewgraphid !== 'undefined';
+    }
 
     function addViewNode(v, startpos) {
       v.viewgraphid = viewgraph.nodes.length;
