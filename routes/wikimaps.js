@@ -119,7 +119,7 @@ var createLinkObjects = function(parentNode, nodes, links){
 
 var addNode = function(title, nodes){
   if (!isNodeInList(title, nodes)){
-    nodes.push({'id': title});
+    nodes.push({'title': title});
   }
 };
 
