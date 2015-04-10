@@ -142,9 +142,18 @@ function wikiGraph()
         var l = modelgraph.edges[e];
         var u = modelgraph.nodes[l.source];
         var v = modelgraph.nodes[l.target];
-        if (inView(u) && inView(v)) viewgraph.links.push({ source: u, target: v });
-        if (inView(u) && !inView(v)) u.colour = red;
-        if (!inView(u) && inView(v)) v.colour = red;
+
+        if (inView(u) && inView(v)) {
+          viewgraph.links.push({ source: u, target: v });
+        }
+
+        if (inView(u) && !inView(v)) {
+          u.colour = red;
+        }
+
+        if (!inView(u) && inView(v)){
+          v.colour = red;
+        }
       });
       update();
     }
