@@ -25,11 +25,14 @@ function Graph() {
     addViewNode(node);
     var promise = articlePromise(title, rid);
     return promise.then(function (data) {
+      if (typeof data.nodes !== 'undefined') {
         data.nodes.map(function (nodeObject) {
-            node.links.push(nodeObject);
+          node.links.push(nodeObject);
         });
-        return node;
-      });
+      }
+
+      return node;
+    });
 
     //return promise;
   };
@@ -46,9 +49,18 @@ function Graph() {
 
   Graph.prototype.expandNeighbours = function (node, callback) {
     var _this = this;
-    node.links.map(function (nodeObject) {
-      _this.addEdge(node, new Node(nodeObject.title, null));
+    var promisesArray = node.links.map(function (nodeObject) {
+      if (node.title.toUpperCase() !== nodeObject.title.toUpperCase()) {
+        return _this.getNode(nodeObject.title, null, function(vertex) {
+          //_this.addEdge(node, new Node(nodeObject.title, null));
+          _this.addEdge(node, vertex);
+          callback(vertex);
+        });
+      }
     });
+
+    //return Promise.resolve(promisesArray);
+    return Promise.all(promisesArray);
     //TODO implement
   };
 }

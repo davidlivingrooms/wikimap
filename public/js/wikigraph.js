@@ -159,8 +159,8 @@ function wikiGraph()
     }
 
     function hintNeighbours(v) {
-      if (!v.cast) return;
-      var hiddenEdges = v.cast.length + 1 - v.degree;
+      if (!v.links) return;
+      var hiddenEdges = v.links.length + 1 - v.degree;
       var r = 2 * Math.PI / hiddenEdges;
       for (var i = 0; i < hiddenEdges; ++i) {
         var w = nodeWidth - 6,
@@ -169,7 +169,7 @@ function wikiGraph()
           y = h / 2 + 30 * Math.sin(r * i),
           rect = new cola.vpsc.Rectangle(0, w, 0, h),
           vi = rect.rayIntersection(x, y);
-        var dview = d3.select("#"+v.name()+"_spikes");
+        var dview = d3.select("#"+v.getTitle()+"_spikes");
         dview.append("rect")
           .attr("class", "spike")
           .attr("rx", 1).attr("ry", 1)
@@ -181,7 +181,7 @@ function wikiGraph()
     }
 
     function unhintNeighbours(v) {
-      var dview = d3.select("#" + v.name() + "_spikes");
+      var dview = d3.select("#" + v.getTitle() + "_spikes");
       dview.selectAll(".spike").remove();
     }
 
@@ -193,7 +193,7 @@ function wikiGraph()
       v.viewgraphid = viewgraph.nodes.length;
       //var d = v.getImage();
       //$.when(d).then(function (node) {
-      //  d3.select("#" + node.name()).append("image")
+      //  d3.select("#" + node.getTitle()).append("image")
       //    .attr("transform", "translate(2,2)")
       //    .attr("xlink:href", function (v) {
       //      var url = v.imgurl;
@@ -214,8 +214,8 @@ function wikiGraph()
     }
 
     function click(node) {
-      if (node.colour !== red) return;
-      var focus = modelgraph.getNode(node.type, node.id);
+      //if (node.colour !== red) return;
+      var focus = modelgraph.getNode(node.title, null);
       refocus(focus);
     }
 
@@ -245,7 +245,7 @@ function wikiGraph()
         .data(viewgraph.nodes, function (d) { return d.viewgraphid; })
 
       var nodeEnter = node.enter().append("g")
-        .attr("id", function (d) { return d.name() })
+        .attr("id", function (d) { return d.getTitle() })
         .attr("class", "node" )
         .on("mousedown", function () { nodeMouseDown = true; }) // recording the mousedown state allows us to differentiate dragging from panning
         .on("mouseup", function () { nodeMouseDown = false; })
@@ -254,7 +254,7 @@ function wikiGraph()
         .on("mouseleave", function (d) { unhintNeighbours(d) })
         .call(d3cola.drag);
 
-      nodeEnter.append("g").attr("id", function (d) { return d.name() + "_spikes" })
+      nodeEnter.append("g").attr("id", function (d) { return d.getTitle() + "_spikes" })
         .attr("transform", "translate(3,3)");
 
       nodeEnter.append("rect")

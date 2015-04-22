@@ -47,12 +47,15 @@ router.get('/getLinksForArticle', function(req, res) {
   var nodes = [];
   var links = [];
   promise.then(function(article) {
-    if (article && article[0] && article[0].out_contains) {
+    if (article && article[0] && typeof article[0].out_contains !== 'undefined') {
       var prefetchedRecords = article[0].out_contains._prefetchedRecords;
       var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
       addArticleToArrays(article[0].title, randomLinks, nodes, links);
       res.type('application/json');
       res.json({nodes: nodes, links: links});
+    }
+    else {
+      res.json({});
     }
   }).catch(function(e) {
     console.log(e);
