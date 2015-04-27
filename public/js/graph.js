@@ -33,8 +33,6 @@ function Graph() {
 
       return node;
     });
-
-    //return promise;
   };
 
   Graph.prototype.addEdge = function (fromNode, toNode) {
