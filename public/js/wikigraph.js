@@ -191,12 +191,17 @@ function wikiGraph()
 
     function addViewNode(v, startpos) {
       v.viewgraphid = viewgraph.nodes.length;
-      //var d = v.getImage();
-      //$.when(d).then(function (node) {
+      
+      
+
+      
+      
+      var imageNodePromise = v.getImageUrl();
+      //imageNodePromise.then(function (node) {
       //  d3.select("#" + node.getTitle()).append("image")
       //    .attr("transform", "translate(2,2)")
       //    .attr("xlink:href", function (v) {
-      //      var url = v.imgurl;
+      //      var url = v.imageUrl;
       //      var simg = this;
       //      var img = new Image();
       //      img.onload = function () {
@@ -206,6 +211,12 @@ function wikiGraph()
       //      return img.src = url;
       //    }).on("click", function() { click(node) })
       //});
+      
+      
+      
+      
+      
+      
       if (typeof startpos !== 'undefined') {
         v.x = startpos.x;
         v.y = startpos.y;

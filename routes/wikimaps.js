@@ -60,7 +60,6 @@ router.get('/getLinksForArticle', function(req, res) {
   }).catch(function(e) {
     console.log(e);
   });
-
 });
 
 /**
