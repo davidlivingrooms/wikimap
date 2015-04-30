@@ -16,8 +16,8 @@ function Node(title, rid) {
 
   Node.prototype.getImageUrl = function () {
     var _this = this;
-    var images = getImagePromise(this.title);
-
+    //var images = getImagePromise(this.title);
+    return this.imageUrl;
     //images.then(function(rawImageData) {
     //  debugger;
     //});

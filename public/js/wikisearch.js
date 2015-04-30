@@ -23,12 +23,16 @@ module.exports = {
           // Map the remote source JSON array to a JavaScript array
           return $.map(articles, function (article) {
             return {
-              value: article.key
+              value: capitalizeWords(article.key)
             };
           });
         }
       }
     });
+
+    function capitalizeWords(str) {
+      return str.replace(/\b./g, function(m){ return m.toUpperCase(); });
+    }
 
     articles.initialize();
 

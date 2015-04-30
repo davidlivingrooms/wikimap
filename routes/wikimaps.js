@@ -3,6 +3,7 @@ var express = require('express');
 var router = express.Router();
 var Promise = require('bluebird');
 var Oriento = require('oriento');
+var request = Promise.promisify(require('request'));
 
 var MAX_NUMBER_OF_LINKS = 4;
 var MAX_NUMBER_OF_NODES = 200;
@@ -41,6 +42,10 @@ router.get('/findArticles', function(req, res) {
   }
 });
 
+function capitalizeWords(str) {
+  str.replace(/\b./g, function(m){ return m.toUpperCase(); });
+}
+
 router.get('/getLinksForArticle', function(req, res) {
   var titleStr = req.query.title[1];
   var promise = getArticlePromise(titleStr);
@@ -51,8 +56,25 @@ router.get('/getLinksForArticle', function(req, res) {
       var prefetchedRecords = article[0].out_contains._prefetchedRecords;
       var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
       addArticleToArrays(article[0].title, randomLinks, nodes, links);
-      res.type('application/json');
-      res.json({nodes: nodes, links: links});
+
+      //request('http://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=100&titles=albert einstein', function (error, response, body) {
+      var url = 'http://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=100&titles=Albert Einstein';
+      request(url).then(function(rawResponse) {
+        var response = rawResponse[0];
+        if (response.statusCode == 200) {
+          var imageInfo = JSON.parse(response.body);
+          var pages = imageInfo.query.pages;
+          var pageId;
+          for (var key in pages) {
+            pageId = key;
+          }
+
+          res.type('application/json');
+          res.json({nodes: nodes, links: links, imageUrl: pages[pageId].thumbnail.source});
+        }
+      });
+
+
     }
     else {
       res.json({});
