@@ -12,26 +12,29 @@ function Graph() {
   this.edges = {};
 
   Graph.prototype.addNode = function (title, rid) {
-    var removedSpacesString = title.split(" ").join("_");
-    var sanitizedString = removedSpacesString.replace("(", "").replace(")", "");
-    var node = new Node(sanitizedString, rid);
+    //var removedSpacesString = title.split(" ").join("_");
+    //var sanitizedString = removedSpacesString.replace("(", "").replace(")", "");
+    //var node = new Node(sanitizedString, rid);
+    var node = new Node(title, rid);
     //var node = new Node(title, rid);
-    return this.nodes[node.getTitle()] = node;
-    //return this.nodes[node.getRid()] = node;
+    //return this.nodes[node.getTitle()] = node;
+    return this.nodes[node.getDomCompatibleRid()] = node;
   };
 
   Graph.prototype.getNode = function (title, rid, addViewNode) {
+    var _this = this;
     if (title in this.nodes) {
       return this.nodes[title];
     }
 
-    var node = this.addNode(title, rid);
+    //var node = this.addNode(title, rid);
     //addViewNode(node);
     var promise = articlePromise(title, rid);
     return promise.then(function (data) {
+      var node = _this.addNode(title, data.rid);
       node.imageUrl = data.imageUrl;
       node.pageId = data.pageId;
-      node.rid = data.rid;
+      //node.rid = data.rid;
       addViewNode(node);
 
       if (typeof data.nodes !== 'undefined') {

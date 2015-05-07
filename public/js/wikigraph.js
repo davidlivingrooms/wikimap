@@ -192,13 +192,8 @@ function wikiGraph()
     function addViewNode(v, startpos) {
       v.viewgraphid = viewgraph.nodes.length;
       
-      //var imageUrl = v.getImageUrl();
-      //imageNodePromise.then(function (node) {
-
-
-
-        //d3.select("#" + v.getDomCompatibleRid()).append("image")
-        d3.select("#" + v.getTitle()).append("image")
+        //d3.select("#" + v.getTitle()).append("image")
+        d3.select("#" + v.getDomCompatibleRid()).append("image")
           .attr("transform", "translate(2,2)")
           .attr("xlink:href", function (v) {
             var url = v.getImageUrl();
@@ -214,7 +209,7 @@ function wikiGraph()
 
 
       //});
-      
+
       if (typeof startpos !== 'undefined') {
         v.x = startpos.x;
         v.y = startpos.y;
@@ -254,7 +249,8 @@ function wikiGraph()
         .data(viewgraph.nodes, function (d) { return d.viewgraphid; })
 
       var nodeEnter = node.enter().append("g")
-        .attr("id", function (d) { return d.getTitle() })
+        //.attr("id", function (d) { return d.getTitle() })
+        .attr("id", function (d) { return d.getDomCompatibleRid() })
         .attr("class", "node" )
         .on("mousedown", function () { nodeMouseDown = true; }) // recording the mousedown state allows us to differentiate dragging from panning
         .on("mouseup", function () { nodeMouseDown = false; })
