@@ -12,8 +12,12 @@ function Graph() {
   this.edges = {};
 
   Graph.prototype.addNode = function (title, rid) {
-    var node = new Node(title, rid);
+    var removedSpacesString = title.split(" ").join("_");
+    var sanitizedString = removedSpacesString.replace("(", "").replace(")", "");
+    var node = new Node(sanitizedString, rid);
+    //var node = new Node(title, rid);
     return this.nodes[node.getTitle()] = node;
+    //return this.nodes[node.getRid()] = node;
   };
 
   Graph.prototype.getNode = function (title, rid, addViewNode) {
@@ -22,9 +26,14 @@ function Graph() {
     }
 
     var node = this.addNode(title, rid);
-    addViewNode(node);
+    //addViewNode(node);
     var promise = articlePromise(title, rid);
     return promise.then(function (data) {
+      node.imageUrl = data.imageUrl;
+      node.pageId = data.pageId;
+      node.rid = data.rid;
+      addViewNode(node);
+
       if (typeof data.nodes !== 'undefined') {
         data.nodes.map(function (nodeObject) {
           node.links.push(nodeObject);
@@ -50,14 +59,12 @@ function Graph() {
     var promisesArray = node.links.map(function (nodeObject) {
       if (node.title.toUpperCase() !== nodeObject.title.toUpperCase()) {
         return _this.getNode(nodeObject.title, null, function(vertex) {
-          //_this.addEdge(node, new Node(nodeObject.title, null));
           _this.addEdge(node, vertex);
           callback(vertex);
         });
       }
     });
 
-    //return Promise.resolve(promisesArray);
     return Promise.all(promisesArray);
     //TODO implement
   };
@@ -67,7 +74,7 @@ function articlePromise(title, rid) {
   return Promise.resolve(
     $.ajax({
       url: 'http://localhost:3000/wikimaps/getLinksForArticle?title',
-      data: {title: title},
+      data: {title: title, rid: rid},
       dataType: 'json'
     }));
 }

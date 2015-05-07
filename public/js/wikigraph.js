@@ -192,30 +192,28 @@ function wikiGraph()
     function addViewNode(v, startpos) {
       v.viewgraphid = viewgraph.nodes.length;
       
-      
-
-      
-      
-      var imageNodePromise = v.getImageUrl();
+      //var imageUrl = v.getImageUrl();
       //imageNodePromise.then(function (node) {
-      //  d3.select("#" + node.getTitle()).append("image")
-      //    .attr("transform", "translate(2,2)")
-      //    .attr("xlink:href", function (v) {
-      //      var url = v.imageUrl;
-      //      var simg = this;
-      //      var img = new Image();
-      //      img.onload = function () {
-      //        simg.setAttribute("width", nodeWidth - 4);
-      //        simg.setAttribute("height", nodeHeight - 4);
-      //      }
-      //      return img.src = url;
-      //    }).on("click", function() { click(node) })
+
+
+
+        //d3.select("#" + v.getDomCompatibleRid()).append("image")
+        d3.select("#" + v.getTitle()).append("image")
+          .attr("transform", "translate(2,2)")
+          .attr("xlink:href", function (v) {
+            var url = v.getImageUrl();
+            var simg = this;
+            var img = new Image();
+            img.onload = function () {
+              simg.setAttribute("width", nodeWidth - 4);
+              simg.setAttribute("height", nodeHeight - 4);
+            }
+            return img.src = url;
+          }).on("click", function() { click(v) });
+
+
+
       //});
-      
-      
-      
-      
-      
       
       if (typeof startpos !== 'undefined') {
         v.x = startpos.x;

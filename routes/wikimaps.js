@@ -51,14 +51,16 @@ router.get('/getLinksForArticle', function(req, res) {
   var promise = getArticlePromise(titleStr);
   var nodes = [];
   var links = [];
-  promise.then(function(article) {
-    if (article && article[0] && typeof article[0].out_contains !== 'undefined') {
-      var prefetchedRecords = article[0].out_contains._prefetchedRecords;
+  promise.then(function(rawArticle) {
+    if (rawArticle && rawArticle[0] && typeof rawArticle[0].out_contains !== 'undefined') {
+      var prefetchedRecords = rawArticle[0].out_contains._prefetchedRecords;
       var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
-      addArticleToArrays(article[0].title, randomLinks, nodes, links);
+      var article = rawArticle[0];
+      var articleTitle = article.title;
+      addArticleToArrays(articleTitle, randomLinks, nodes, links);
 
-      //request('http://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=100&titles=albert einstein', function (error, response, body) {
-      var url = 'http://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=100&titles=Albert Einstein';
+      //var url = 'http://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=100&titles=Albert Einstein';
+      var url = 'http://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=100&titles=' + articleTitle;
       request(url).then(function(rawResponse) {
         var response = rawResponse[0];
         if (response.statusCode == 200) {
@@ -70,7 +72,7 @@ router.get('/getLinksForArticle', function(req, res) {
           }
 
           res.type('application/json');
-          res.json({nodes: nodes, links: links, imageUrl: pages[pageId].thumbnail.source});
+          res.json({nodes: nodes, links: links, pageId: pageId, rid: article['@rid'].toString().substr(1), imageUrl: pages[pageId].thumbnail.source});
         }
       });
 
