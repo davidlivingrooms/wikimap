@@ -219,7 +219,7 @@ function wikiGraph()
 
     function click(node) {
       //if (node.colour !== red) return;
-      var focus = modelgraph.getNode(node.title, null);
+      var focus = modelgraph.getNode(node.title, node.getDomCompatibleRid());
       refocus(focus);
     }
 

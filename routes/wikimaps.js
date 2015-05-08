@@ -42,44 +42,40 @@ router.get('/findArticles', function(req, res) {
   }
 });
 
-function capitalizeWords(str) {
-  str.replace(/\b./g, function(m){ return m.toUpperCase(); });
-}
-
 router.get('/getLinksForArticle', function(req, res) {
   var titleStr = req.query.title[1];
   var promise = getArticlePromise(titleStr);
   var nodes = [];
   var links = [];
   promise.then(function(rawArticle) {
-    if (rawArticle && rawArticle[0] && typeof rawArticle[0].out_contains !== 'undefined') {
-      var prefetchedRecords = rawArticle[0].out_contains._prefetchedRecords;
-      var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
+    if (rawArticle && rawArticle[0]) {
       var article = rawArticle[0];
       var articleTitle = article.title;
-      addArticleToArrays(articleTitle, randomLinks, nodes, links);
+      var rid = article['@rid'].toString().substr(1);
+      if (typeof article.out_contains !== 'undefined') {
+        var prefetchedRecords = article.out_contains._prefetchedRecords;
+        var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
+        addArticleToArrays(articleTitle, randomLinks, nodes, links);
 
-      //var url = 'http://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=100&titles=Albert Einstein';
-      var url = 'http://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=100&titles=' + articleTitle;
-      request(url).then(function(rawResponse) {
-        var response = rawResponse[0];
-        if (response.statusCode == 200) {
-          var imageInfo = JSON.parse(response.body);
-          var pages = imageInfo.query.pages;
-          var pageId;
-          for (var key in pages) {
-            pageId = key;
+        var url = 'http://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=100&titles=' + articleTitle;
+        request(url).then(function(rawResponse) {
+          var response = rawResponse[0];
+          if (response.statusCode == 200) {
+            var imageInfo = JSON.parse(response.body);
+            var pages = imageInfo.query.pages;
+            var pageId;
+            for (var key in pages) {
+              pageId = key;
+            }
+
+            res.json({nodes: nodes, links: links, pageId: pageId, rid: rid, imageUrl: pages[pageId].thumbnail.source});
           }
-
-          res.type('application/json');
-          res.json({nodes: nodes, links: links, pageId: pageId, rid: article['@rid'].toString().substr(1), imageUrl: pages[pageId].thumbnail.source});
-        }
-      });
-
-
-    }
-    else {
-      res.json({});
+        });
+      }
+      else
+      {
+        res.json({nodes: [], links: [], rid: rid});
+      }
     }
   }).catch(function(e) {
     console.log(e);
@@ -95,13 +91,16 @@ router.get('/generateWikiMap', function(req, res) {
 });
 
 var getArticlePromise = function(titleStr){
-  return graph.select().from('V').where({title: titleStr}).limit(1).fetch('out_contains:1 out_contains.in:1').all();
+  //return graph.select().from('V').where({title: titleStr}).limit(1).fetch('out_contains:1 out_contains.in:1').all();
+  return graph.select().from('V').where({title: titleStr}).limit(1).all();//TODO is this enough iror should
 };
 
 var getRandomLinksFromArticle = function(links){
   var randomLinks = [];
   var linkRIDS = Object.getOwnPropertyNames(links);
-  for(var i = 0; i < MAX_NUMBER_OF_LINKS; i++){
+  var numOfRIDS = linkRIDS.length;
+  var linkCeiling = numOfRIDS < MAX_NUMBER_OF_LINKS ? numOfRIDS : MAX_NUMBER_OF_LINKS;
+  for(var i = 0; i < linkCeiling; i++){
     var randomLinkRID = linkRIDS.splice(Math.floor(Math.random() * linkRIDS.length),1)[0];
     randomLinks.push(links[randomLinkRID].title);
   }

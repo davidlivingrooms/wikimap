@@ -23,9 +23,11 @@ function Graph() {
 
   Graph.prototype.getNode = function (title, rid, addViewNode) {
     var _this = this;
-    if (title in this.nodes) {
-      return this.nodes[title];
+    if (rid in this.nodes) {
+      return this.nodes[rid];
     }
+
+
 
     //var node = this.addNode(title, rid);
     //addViewNode(node);
