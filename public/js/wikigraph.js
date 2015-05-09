@@ -178,7 +178,7 @@ function wikiGraph()
       d3.select("#" + v.getDomCompatibleRid()).append("image")
         .attr("transform", "translate(2,2)")
         .attr("xlink:href", function (v) {
-          var url = v.getImageUrl();
+          var url = v.imageUrl;
           var simg = this;
           var img = new Image();
           img.onload = function () {

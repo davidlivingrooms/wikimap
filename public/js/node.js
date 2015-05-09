@@ -7,17 +7,12 @@ function Node(title, rid) {
   this.title = title;
   this.links = [];
   this.imageUrl;
-  this.pageId;
   this.rid = rid;
   this.degree = 0;
 
   Node.prototype.getDomCompatibleRid = function () {
     var rid = this.rid;
     return [rid.slice(0, 0), "element", rid.slice(0)].join('').replace(/:/g, '');
-  };
-
-  Node.prototype.getImageUrl = function () {
-    return this.imageUrl;
   };
 }
 

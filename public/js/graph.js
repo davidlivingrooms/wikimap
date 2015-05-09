@@ -26,7 +26,6 @@ function Graph() {
     return promise.then(function (data) {
       var node = _this.addNode(title, data.rid);
       node.imageUrl = data.imageUrl;
-      node.pageId = data.pageId;
       addViewNode(node);
 
       if (typeof data.nodes !== 'undefined') {
@@ -73,7 +72,7 @@ function Graph() {
     });
 
     return Promise.all(promisesArray);
-    //TODO implement
+    //TODO what if attached to previous node?
   };
 }
 
