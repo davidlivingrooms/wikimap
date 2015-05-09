@@ -43,7 +43,7 @@ router.get('/findArticles', function(req, res) {
   }
 });
 
-router.get('/getLinksForArticle', function(req, res) {
+router.get('/getArticleInfo', function(req, res) {
   var titleStr = req.query.title[1];
   var promise = getArticlePromise(titleStr);
   var nodes = [];

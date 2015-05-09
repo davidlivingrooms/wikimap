@@ -80,7 +80,7 @@ function Graph() {
 function articlePromise(title, rid) {
   return Promise.resolve(
     $.ajax({
-      url: 'http://localhost:3000/wikimaps/getLinksForArticle?title',
+      url: 'http://localhost:3000/wikimaps/getArticleInfo?title',
       data: {title: title, rid: rid},
       dataType: 'json'
     }));

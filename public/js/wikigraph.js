@@ -98,7 +98,6 @@ function wikiGraph()
     // get first node
     var d = modelgraph.getNode(rootTitle, null, addViewNode);
     d.then(function (startNode) {
-      addViewNode(startNode);
       refocus(startNode);
     });
 
