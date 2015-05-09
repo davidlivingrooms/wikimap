@@ -25,29 +25,13 @@ function keepNodesOnTop() {
 
 function drawGraph(rootTitle) {
   graph = new wikiGraph("#svgdiv");
-  graph.addWikiLinksToGraph(rootTitle);
+  //graph.addWikiLinksToGraph(rootTitle);
+  graph.start(rootTitle);
 }
 
 function wikiGraph()
 {
-  var links = [];
-  this.addWikiLinksToGraph = function (rootTitle) {
-    //var res = Promise.resolve(
-    //  $.ajax({
-    //    url: 'http://localhost:3000/wikimaps/getLinksForArticle?title',
-    //    data: {title: rootTitle},
-    //    dataType: 'json'
-    //  }));
-    //
-    //res.then(function(data){
-    //  $("#loadingAnimation").remove();
-    //  links = data.links;
-      start(rootTitle);
-      //keepNodesOnTop();
-    //});
-  };
-
-  var start = function(rootTitle) {
+  this.start = function(rootTitle) {
     var width = 960,
       height = 500,
       imageScale = 0.1;
@@ -74,7 +58,7 @@ function wikiGraph()
 
     var defs = outer.append("svg:defs");
 
-    function addGradient(id, colour1, opacity1, colour2, opacity2) {
+    function addGradient(id, color1, opacity1, color2, opacity2) {
       var gradient = defs.append("svg:linearGradient")
         .attr("id", id)
         .attr("x1", "0%")
@@ -85,12 +69,12 @@ function wikiGraph()
 
       gradient.append("svg:stop")
         .attr("offset", "0%")
-        .attr("stop-color", colour1)
+        .attr("stop-color", color1)
         .attr("stop-opacity", opacity1);
 
       gradient.append("svg:stop")
         .attr("offset", "100%")
-        .attr("stop-color", colour2)
+        .attr("stop-color", color2)
         .attr("stop-opacity", opacity2);
     }
     addGradient("SpikeGradient", "red", 1, "red", 0);
@@ -133,8 +117,8 @@ function wikiGraph()
     function refreshViewGraph() {
       viewgraph.links = [];
       viewgraph.nodes.forEach(function (v) {
-        //var fullyExpanded = modelgraph.fullyExpanded(v);
-        //v.colour = fullyExpanded ? "darkgrey" : red
+        var fullyExpanded = modelgraph.isFullyExpanded(v);
+        v.color = fullyExpanded ? "darkgrey" : red
         if (!v.links) return;
       });
 
@@ -148,11 +132,11 @@ function wikiGraph()
         }
 
         if (inView(u) && !inView(v)) {
-          u.colour = red;
+          u.color = red;
         }
 
         if (!inView(u) && inView(v)){
-          v.colour = red;
+          v.color = red;
         }
       });
       update();
@@ -191,34 +175,33 @@ function wikiGraph()
 
     function addViewNode(v, startpos) {
       v.viewgraphid = viewgraph.nodes.length;
-      
-        //d3.select("#" + v.getTitle()).append("image")
-        d3.select("#" + v.getDomCompatibleRid()).append("image")
-          .attr("transform", "translate(2,2)")
-          .attr("xlink:href", function (v) {
-            var url = v.getImageUrl();
-            var simg = this;
-            var img = new Image();
-            img.onload = function () {
-              simg.setAttribute("width", nodeWidth - 4);
-              simg.setAttribute("height", nodeHeight - 4);
-            }
-            return img.src = url;
-          }).on("click", function() { click(v) });
-
-
-
-      //});
 
       if (typeof startpos !== 'undefined') {
         v.x = startpos.x;
         v.y = startpos.y;
       }
       viewgraph.nodes.push(v);
+      update();
+
+      d3.select("#" + v.getDomCompatibleRid()).append("image")
+        .attr("transform", "translate(2,2)")
+        .attr("xlink:href", function (v) {
+          var url = v.getImageUrl();
+          var simg = this;
+          var img = new Image();
+          img.onload = function () {
+            simg.setAttribute("width", nodeWidth - 4);
+            simg.setAttribute("height", nodeHeight - 4);
+          }
+          return img.src = url;
+        }).on("click", function() { click(v) });
     }
 
     function click(node) {
-      //if (node.colour !== red) return;
+      if (node.color !== red)
+      {
+        return;
+      }
       var focus = modelgraph.getNode(node.title, node.getDomCompatibleRid());
       refocus(focus);
     }
@@ -240,9 +223,9 @@ function wikiGraph()
 
       link
         .attr("fill", function (d) {
-          if (d.source.colour === red && d.target.colour === red) return red;
-          if (d.source.colour !== red && d.target.colour !== red) return "darkgray";
-          return d.source.colour === red ? "url(#ReverseEdgeGradient)" : "url(#EdgeGradient)";
+          if (d.source.color === red && d.target.color === red) return red;
+          if (d.source.color !== red && d.target.color !== red) return "darkgray";
+          return d.source.color === red ? "url(#ReverseEdgeGradient)" : "url(#EdgeGradient)";
         });
 
       var node = nodesLayer.selectAll(".node")
@@ -272,7 +255,7 @@ function wikiGraph()
       nodeEnter.append("title")
         .text(function (d) { return d.label; });
 
-      node.style("fill", function (d) { return d.colour; });
+      node.style("fill", function (d) { return d.color; });
 
       d3cola.on("tick", function () {
         link.attr("transform", function (d) {

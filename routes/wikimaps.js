@@ -53,6 +53,8 @@ router.get('/getLinksForArticle', function(req, res) {
       var article = rawArticle[0];
       var articleTitle = article.title;
       var rid = article['@rid'].toString().substr(1);
+      var unknownThumbnail = 'http://upload.wikimedia.org/wikipedia/commons/3/37/No_person.jpg';
+
       if (typeof article.out_contains !== 'undefined') {
         var prefetchedRecords = article.out_contains._prefetchedRecords;
         var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
@@ -69,13 +71,17 @@ router.get('/getLinksForArticle', function(req, res) {
               pageId = key;
             }
 
-            res.json({nodes: nodes, pageId: pageId, rid: rid, imageUrl: pages[pageId].thumbnail.source});
+              var thumbnail = pages[pageId].thumbnail;
+              if (typeof thumbnail === 'undefined') {
+                thumbnail = unknownThumbnail;
+              }
+              res.json({nodes: nodes, pageId: pageId, rid: rid, imageUrl: thumbnail.source});
           }
         });
       }
       else
       {
-        res.json({nodes: [], rid: rid});
+        res.json({nodes: [], rid: rid, imageUrl: unknownThumbnail});
       }
     }
   }).catch(function(e) {

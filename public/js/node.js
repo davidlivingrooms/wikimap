@@ -13,7 +13,6 @@ function Node(title, rid) {
 
   Node.prototype.getDomCompatibleRid = function () {
     var rid = this.rid;
-    //return [rid.slice(0, 0), "element", rid.slice(0)].join('').replace(/:/g, '\\\\:');
     return [rid.slice(0, 0), "element", rid.slice(0)].join('').replace(/:/g, '');
   };
 

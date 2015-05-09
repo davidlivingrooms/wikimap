@@ -49,6 +49,14 @@ function Graph() {
     ++toNode.degree;
   };
 
+  Graph.prototype.isFullyExpanded = function (node) {
+    var _this = this;
+    return node.links && node.links.every(function(element) {
+     var elementNode = new Node(element.title, element.rid);
+        return elementNode.getDomCompatibleRid() in _this.nodes;
+    })
+  };
+
   Graph.prototype.expandNeighbours = function (node, callback) {
     var _this = this;
     var promisesArray = node.links.map(function (nodeObject) {
