@@ -71,11 +71,17 @@ router.get('/getLinksForArticle', function(req, res) {
               pageId = key;
             }
 
-              var thumbnail = pages[pageId].thumbnail;
-              if (typeof thumbnail === 'undefined') {
-                thumbnail = unknownThumbnail;
-              }
-              res.json({nodes: nodes, pageId: pageId, rid: rid, imageUrl: thumbnail.source});
+            var thumbnail = pages[pageId].thumbnail;
+            var sourceImage;
+            if (typeof thumbnail === 'undefined' || typeof thumbnail.source === 'undefined') {
+              sourceImage = unknownThumbnail;
+            }
+            else {
+              sourceImage = thumbnail.source;
+            }
+
+
+            res.json({nodes: nodes, pageId: pageId, rid: rid, imageUrl: sourceImage});
           }
         });
       }

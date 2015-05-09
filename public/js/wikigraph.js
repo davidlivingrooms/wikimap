@@ -106,9 +106,11 @@ function wikiGraph()
       var neighboursExpanded = modelgraph.expandNeighbours(focus, function (v) {
         if (!inView(v)){
           addViewNode(v, focus);
+          loadImage(v);
         }
       });
       refreshViewGraph();
+      loadImage(focus);
       $.when(neighboursExpanded).then(function f() {
         refreshViewGraph();
       });
@@ -118,7 +120,7 @@ function wikiGraph()
       viewgraph.links = [];
       viewgraph.nodes.forEach(function (v) {
         var fullyExpanded = modelgraph.isFullyExpanded(v);
-        v.color = fullyExpanded ? "darkgrey" : red
+        v.color = fullyExpanded ? "darkgrey" : red;
         if (!v.links) return;
       });
 
@@ -173,16 +175,7 @@ function wikiGraph()
       return typeof v.viewgraphid !== 'undefined';
     }
 
-    function addViewNode(v, startpos) {
-      v.viewgraphid = viewgraph.nodes.length;
-
-      if (typeof startpos !== 'undefined') {
-        v.x = startpos.x;
-        v.y = startpos.y;
-      }
-      viewgraph.nodes.push(v);
-      update();
-
+    function loadImage(v) {
       d3.select("#" + v.getDomCompatibleRid()).append("image")
         .attr("transform", "translate(2,2)")
         .attr("xlink:href", function (v) {
@@ -194,7 +187,21 @@ function wikiGraph()
             simg.setAttribute("height", nodeHeight - 4);
           }
           return img.src = url;
-        }).on("click", function() { click(v) });
+        }).on("click", function () {
+          click(v)
+        });
+    }
+
+    function addViewNode(v, startpos) {
+      v.viewgraphid = viewgraph.nodes.length;
+
+      if (typeof startpos !== 'undefined') {
+        v.x = startpos.x;
+        v.y = startpos.y;
+      }
+      viewgraph.nodes.push(v);
+      //update();
+      //loadImage(v);
     }
 
     function click(node) {

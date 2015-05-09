@@ -31,7 +31,10 @@ function Graph() {
 
       if (typeof data.nodes !== 'undefined') {
         data.nodes.map(function (nodeObject) {
-          node.links.push(nodeObject);
+          var linkNodeObject = new Node(nodeObject.title, nodeObject.rid);
+          if (node.getDomCompatibleRid() !== linkNodeObject.getDomCompatibleRid()) {
+            node.links.push(nodeObject);
+          }
         });
       }
 
