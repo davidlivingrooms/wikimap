@@ -6,14 +6,15 @@ var Oriento = require('oriento');
 var request = Promise.promisify(require('request'));
 
 var MAX_NUMBER_OF_LINKS = 4;
-var MAX_NUMBER_OF_NODES = 200;
 var DEFAULT_LINK_LENGTH = 20;
 
 var server = new Oriento({
   host: 'localhost',
   port: 2424,
+  //username: 'root',
   username: 'root',
-  password: 'password'
+  password: 'admin'
+  //password: 'password'
 });
 
 var graph = server.use("wikipediaOrientDb");
@@ -55,7 +56,7 @@ router.get('/getLinksForArticle', function(req, res) {
       if (typeof article.out_contains !== 'undefined') {
         var prefetchedRecords = article.out_contains._prefetchedRecords;
         var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
-        addArticleToArrays(articleTitle, randomLinks, nodes, links);
+        addArticleToArrays(article, randomLinks, nodes, links);
 
         var url = 'http://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=100&titles=' + articleTitle;
         request(url).then(function(rawResponse) {
@@ -68,13 +69,13 @@ router.get('/getLinksForArticle', function(req, res) {
               pageId = key;
             }
 
-            res.json({nodes: nodes, links: links, pageId: pageId, rid: rid, imageUrl: pages[pageId].thumbnail.source});
+            res.json({nodes: nodes, pageId: pageId, rid: rid, imageUrl: pages[pageId].thumbnail.source});
           }
         });
       }
       else
       {
-        res.json({nodes: [], links: [], rid: rid});
+        res.json({nodes: [], rid: rid});
       }
     }
   }).catch(function(e) {
@@ -82,17 +83,9 @@ router.get('/getLinksForArticle', function(req, res) {
   });
 });
 
-/**
- *  Generate Wikimap for article
- */
-router.get('/generateWikiMap', function(req, res) {
-  var titleStr = req.query.title[1];
-  generateWikiMap(titleStr, res);
-});
-
 var getArticlePromise = function(titleStr){
-  //return graph.select().from('V').where({title: titleStr}).limit(1).fetch('out_contains:1 out_contains.in:1').all();
-  return graph.select().from('V').where({title: titleStr}).limit(1).all();//TODO is this enough iror should
+  return graph.select().from('V').where({title: titleStr}).limit(1).fetch('out_contains:1 out_contains.in:1').all();
+  //return graph.select().from('V').where({title: titleStr}).limit(1).all();
 };
 
 var getRandomLinksFromArticle = function(links){
@@ -102,7 +95,7 @@ var getRandomLinksFromArticle = function(links){
   var linkCeiling = numOfRIDS < MAX_NUMBER_OF_LINKS ? numOfRIDS : MAX_NUMBER_OF_LINKS;
   for(var i = 0; i < linkCeiling; i++){
     var randomLinkRID = linkRIDS.splice(Math.floor(Math.random() * linkRIDS.length),1)[0];
-    randomLinks.push(links[randomLinkRID].title);
+    randomLinks.push(links[randomLinkRID]);
   }
   return randomLinks;
 };
@@ -113,9 +106,9 @@ function addLinks(links, currentArticleLinks) {
   }
 }
 
-var isNodeInList = function (id, nodes) {
+var isNodeInList = function (article, nodes) {
   for (var i = 0; i < nodes.length; i++) {
-    if (nodes[i].id === id) {
+    if (nodes[i].title === article.title) {
       return true;
     }
   }
@@ -142,70 +135,19 @@ var createLinkObjects = function(parentNode, nodes, links){
   return articleLinks;
 };
 
-var addNode = function(title, nodes){
-  if (!isNodeInList(title, nodes)){
-    nodes.push({'title': title});
+var addNode = function(article, nodes){
+  if (!isNodeInList(article, nodes)){
+    nodes.push({'title': article.title, 'rid': article['@rid'].toString().substr(1)});
   }
 };
 
-var addArticleToArrays = function(title, randomLinks, nodes, links){
-  addNode(title, nodes);
+var addArticleToArrays = function(article, randomLinks, nodes, links){
+  addNode(article, nodes);
   for(var i = 0; i < randomLinks.length; i++) {
     addNode(randomLinks[i], nodes);
   }
-  var currentArticleLinks = createLinkObjects(title, nodes, randomLinks);
+  var currentArticleLinks = createLinkObjects(article, nodes, randomLinks);
   addLinks(links, currentArticleLinks);
-};
-
-var generateWikiMap = function(titleStr, res){
-
-  var nodes = [];
-  var links = [];
-
-
-
-  function doSomethingAsync(titleStr) {
-    var completeFunc, errFunc;
-
-    var p = new Promise(function (resolve, reject) {
-      completeFunc = resolve;
-      errFunc = reject;
-    });
-
-    function addNodeAndLinksToArrays(titleStr) {
-      var promise = getArticlePromise(titleStr);
-      promise.then(function(article) {
-        if (article && article[0] && article[0].out_contains) {
-          var prefetchedRecords = article[0].out_contains._prefetchedRecords;
-          if (article !== null) {
-            if (nodes.length < MAX_NUMBER_OF_NODES) {
-              var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
-              addArticleToArrays(article[0].title, randomLinks);
-              for (var i = 0; i < randomLinks.length; i++) {
-                addNodeAndLinksToArrays(randomLinks[i]);
-              }
-            }
-            else {
-              completeFunc();
-            }
-          }
-        }
-      }).catch(function(e) {
-        console.log(e);
-      });
-    }
-    // Kick off the async work
-    addNodeAndLinksToArrays(titleStr);
-
-    // return the promise for outside callers to wait on
-    return p;
-  }
-
-  doSomethingAsync(titleStr).then(function() {
-    res.type('application/json');
-    res.json({nodes: nodes, links: links});
-    });
-
 };
 
 // remove multiple, leading or trailing spaces

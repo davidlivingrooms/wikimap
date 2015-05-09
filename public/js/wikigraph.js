@@ -25,26 +25,26 @@ function keepNodesOnTop() {
 
 function drawGraph(rootTitle) {
   graph = new wikiGraph("#svgdiv");
-  graph.addWikiLinksToGraph(rootTitle, graph);
+  graph.addWikiLinksToGraph(rootTitle);
 }
 
 function wikiGraph()
 {
   var links = [];
   this.addWikiLinksToGraph = function (rootTitle) {
-    var res = Promise.resolve(
-      $.ajax({
-        url: 'http://localhost:3000/wikimaps/getLinksForArticle?title',
-        data: {title: rootTitle},
-        dataType: 'json'
-      }));
-
-    res.then(function(data){
-      $("#loadingAnimation").remove();
-      links = data.links;
+    //var res = Promise.resolve(
+    //  $.ajax({
+    //    url: 'http://localhost:3000/wikimaps/getLinksForArticle?title',
+    //    data: {title: rootTitle},
+    //    dataType: 'json'
+    //  }));
+    //
+    //res.then(function(data){
+    //  $("#loadingAnimation").remove();
+    //  links = data.links;
       start(rootTitle);
-      keepNodesOnTop();
-    });
+      //keepNodesOnTop();
+    //});
   };
 
   var start = function(rootTitle) {
@@ -169,7 +169,7 @@ function wikiGraph()
           y = h / 2 + 30 * Math.sin(r * i),
           rect = new cola.vpsc.Rectangle(0, w, 0, h),
           vi = rect.rayIntersection(x, y);
-        var dview = d3.select("#"+v.getTitle()+"_spikes");
+        var dview = d3.select("#"+v.getDomCompatibleRid()+"_spikes");
         dview.append("rect")
           .attr("class", "spike")
           .attr("rx", 1).attr("ry", 1)
@@ -181,7 +181,7 @@ function wikiGraph()
     }
 
     function unhintNeighbours(v) {
-      var dview = d3.select("#" + v.getTitle() + "_spikes");
+      var dview = d3.select("#" + v.getDomCompatibleRid() + "_spikes");
       dview.selectAll(".spike").remove();
     }
 
@@ -259,7 +259,7 @@ function wikiGraph()
         .on("mouseleave", function (d) { unhintNeighbours(d) })
         .call(d3cola.drag);
 
-      nodeEnter.append("g").attr("id", function (d) { return d.getTitle() + "_spikes" })
+      nodeEnter.append("g").attr("id", function (d) { return d.getDomCompatibleRid() + "_spikes" })
         .attr("transform", "translate(3,3)");
 
       nodeEnter.append("rect")
