@@ -18,7 +18,8 @@
 		<script src="js/libs/skel-layers.min.js"></script>
 		<script src="js/libs/init.js"></script>
 		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-		<script src="http://marvl.infotech.monash.edu/webcola/cola.v3.min.js"></script>
+        <script type='text/javascript' src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"> </script>
+        <script src="http://marvl.infotech.monash.edu/webcola/cola.v3.min.js"></script>
 		<script src='http://okfnlabs.org/wikipediajs/wikipedia.js'></script>
 		<script src="js/bundle.js"></script>
 		<noscript>
@@ -96,18 +97,13 @@
 				<!-- Article view -->
 					<section id="about" class="three">
 						<div class="container">
-							<div id="articleContent"></div>
-							<!--<header>-->
-								<!--<h2>Article View</h2>-->
-							<!--</header>-->
+                            <a id="wikipediaArticleLink"><span class="label" id="wikipediaArticleLinkLabel"></span></a>
+                            <div id="articleContent"></div>
+                            <!--<header>-->
+                            <!--<h2>Article View</h2>-->
+                            <!--</header>-->
 
-							<!--<p>Tincidunt eu elit diam magnis pretium accumsan etiam id urna. Ridiculus-->
-							<!--ultricies curae quis et rhoncus velit. Lobortis elementum aliquet nec vitae -->
-							<!--laoreet eget cubilia quam non etiam odio tincidunt montes. Elementum sem -->
-							<!--parturient nulla quam placerat viverra mauris non cum elit tempus ullamcorper -->
-							<!--dolor. Libero rutrum ut lacinia donec curae mus vel quisque sociis nec -->
-							<!--ornare iaculis.</p>-->
-
+                            <!--<a id="wikipediaArticleLink" style="visibility: hidden"><span class="label" id="wikipediaArticleLinkLabel"></span></a>-->
 						</div>
 					</section>
 			

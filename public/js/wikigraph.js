@@ -16,16 +16,8 @@ module.exports = {
   }
 }
 
-function keepNodesOnTop() {
-  $(".nodeStrokeClass").each(function (index) {
-    var gnode = this.parentNode;
-    gnode.parentNode.appendChild(gnode);
-  });
-}
-
 function drawGraph(rootTitle) {
   graph = new wikiGraph("#svgdiv");
-  //graph.addWikiLinksToGraph(rootTitle);
   graph.start(rootTitle);
 }
 
@@ -46,6 +38,15 @@ function wikiGraph()
       .attr("width", width)
       .attr("height", height)
       .attr("pointer-events", "all");
+
+    //Set up tooltip
+    var tip = d3.tip()
+      .attr('class', 'd3-tip')
+      .offset([-10, 0])
+      .html(function (d) {
+        return d.title + "</span>";
+      })
+    outer.call(tip);
 
     var zoom = d3.behavior.zoom();
 
@@ -199,17 +200,20 @@ function wikiGraph()
         v.y = startpos.y;
       }
       viewgraph.nodes.push(v);
-      //update();
-      //loadImage(v);
     }
 
     function click(node) {
-      if (node.color !== red)
+      $("#wikipediaArticleLink").attr('href', 'http://en.wikipedia.org/wiki/' + node.title);
+      $("#wikipediaArticleLinkLabel").text(node.title);
+      $('#articleContent').text(node.summaryText);
+      //if (node.color !== red)
+      if (node.expanded || !node.links || node.links.length === 0)
       {
         return;
       }
       var focus = modelgraph.getNode(node.title, node.getDomCompatibleRid());
       refocus(focus);
+      node.expanded = true;
     }
 
     function update() {
@@ -246,7 +250,9 @@ function wikiGraph()
         .on("touchmove", function () { d3.event.preventDefault() })
         .on("mouseenter", function (d) { hintNeighbours(d) }) // on mouse over nodes we show "spikes" indicating there are hidden neighbours
         .on("mouseleave", function (d) { unhintNeighbours(d) })
-        .call(d3cola.drag);
+        .call(d3cola.drag)
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide);
 
       nodeEnter.append("g").attr("id", function (d) { return d.getDomCompatibleRid() + "_spikes" })
         .attr("transform", "translate(3,3)");

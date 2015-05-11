@@ -54,6 +54,7 @@ router.get('/getArticleInfo', function(req, res) {
       var articleTitle = article.title;
       var rid = article['@rid'].toString().substr(1);
       var unknownThumbnail = 'http://upload.wikimedia.org/wikipedia/commons/3/37/No_person.jpg';
+
       var url = 'http://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=100&titles=' + articleTitle;
       request(url).then(function(rawResponse) {
         var response = rawResponse[0];
@@ -69,24 +70,31 @@ router.get('/getArticleInfo', function(req, res) {
           pageId = key;
         }
 
-        var thumbnail = pages[pageId].thumbnail;
-        var sourceImage;
-        if (typeof thumbnail === 'undefined' || typeof thumbnail.source === 'undefined') {
-          sourceImage = unknownThumbnail;
-        }
-        else {
-          sourceImage = thumbnail.source;
-        }
+        var summaryUrl = 'https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&pageids=' + pageId;
 
-        if (typeof article.out_contains !== 'undefined') {
-          var prefetchedRecords = article.out_contains._prefetchedRecords;
-          var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
-          addArticleToArrays(article, randomLinks, nodes, links);
-          res.json({nodes: nodes, rid: rid, imageUrl: sourceImage});
-        }
-        else{
-          res.json({nodes: [], rid: rid, imageUrl: sourceImage});
-        }
+        request(summaryUrl).then(function(rawResponse) {
+
+          var summaryInfo = JSON.parse(rawResponse[0].body);
+          var summaryText = summaryInfo.query.pages[pageId].extract;
+          var thumbnail = pages[pageId].thumbnail;
+          var sourceImage;
+          if (typeof thumbnail === 'undefined' || typeof thumbnail.source === 'undefined') {
+            sourceImage = unknownThumbnail;
+          }
+          else {
+            sourceImage = thumbnail.source;
+          }
+
+          if (typeof article.out_contains !== 'undefined') {
+            var prefetchedRecords = article.out_contains._prefetchedRecords;
+            var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
+            addArticleToArrays(article, randomLinks, nodes, links);
+            res.json({nodes: nodes, rid: rid, imageUrl: sourceImage, summaryText: summaryText});
+          }
+          else{
+            res.json({nodes: [], rid: rid, imageUrl: sourceImage, summaryText: summaryText});
+          }
+        });
       });
     }
   }).catch(function(e) {

@@ -6,7 +6,6 @@ var Promise = require('bluebird');
 function Node(title, rid) {
   this.title = title;
   this.links = [];
-  this.imageUrl;
   this.rid = rid;
   this.degree = 0;
 

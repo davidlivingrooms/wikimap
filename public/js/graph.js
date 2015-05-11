@@ -26,6 +26,7 @@ function Graph() {
     return promise.then(function (data) {
       var node = _this.addNode(title, data.rid);
       node.imageUrl = data.imageUrl;
+      node.summaryText = data.summaryText;
       addViewNode(node);
 
       if (typeof data.nodes !== 'undefined') {
