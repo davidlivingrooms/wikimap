@@ -7,23 +7,24 @@ var d3 = require('d3');
 var cola = require('cola');
 var Promise = require('bluebird');
 var Graph = require('./graph.js');
+var StringUtils = new (require('./string_utils.js'));
 var graph;
 
 module.exports = {
-  initializeNewGraph: function(rootTitle) {
+  initializeNewGraph: function(rootArticle) {
     d3.select("svg").remove();
-    drawGraph(rootTitle);
+    drawGraph(rootArticle);
   }
-}
+};
 
-function drawGraph(rootTitle) {
+function drawGraph(rootArticle) {
   graph = new wikiGraph("#svgdiv");
-  graph.start(rootTitle);
+  graph.start(rootArticle);
 }
 
 function wikiGraph()
 {
-  this.start = function(rootTitle) {
+  this.start = function(rootArticle) {
     var width = 960,
       height = 500,
       imageScale = 0.1;
@@ -97,8 +98,9 @@ function wikiGraph()
     var viewgraph = { nodes: [], links: [] };
     var nodeWidth = 30, nodeHeight = 35;
     // get first node
-    var d = modelgraph.getNode(rootTitle, null, addViewNode);
+    var d = modelgraph.getNode(rootArticle.value, addViewNode);
     d.then(function (startNode) {
+      //addViewNode(startNode);
       refocus(startNode);
     });
 
@@ -106,12 +108,12 @@ function wikiGraph()
       var neighboursExpanded = modelgraph.expandNeighbours(focus, function (v) {
         if (!inView(v)){
           addViewNode(v, focus);
-          loadImage(v);
+          //loadImage(v);
         }
       });
       refreshViewGraph();
-      loadImage(focus);
-      $.when(neighboursExpanded).then(function f() {
+      //loadImage(focus);
+      neighboursExpanded.then(function f() {//TODO why $.when. just use the promise
         refreshViewGraph();
       });
     }
@@ -155,7 +157,7 @@ function wikiGraph()
           y = h / 2 + 30 * Math.sin(r * i),
           rect = new cola.vpsc.Rectangle(0, w, 0, h),
           vi = rect.rayIntersection(x, y);
-        var dview = d3.select("#"+v.getDomCompatibleRid()+"_spikes");
+        var dview = d3.select("#"+StringUtils.encodeID(v.title)+"_spikes");
         dview.append("rect")
           .attr("class", "spike")
           .attr("rx", 1).attr("ry", 1)
@@ -167,7 +169,7 @@ function wikiGraph()
     }
 
     function unhintNeighbours(v) {
-      var dview = d3.select("#" + v.getDomCompatibleRid() + "_spikes");
+      var dview = d3.select("#" + StringUtils.encodeID(v.title) + "_spikes");
       dview.selectAll(".spike").remove();
     }
 
@@ -176,7 +178,7 @@ function wikiGraph()
     }
 
     function loadImage(v) {
-      d3.select("#" + v.getDomCompatibleRid()).append("image")
+      d3.select("#" + StringUtils.encodeID(v.title)).append("image")
         .attr("transform", "translate(2,2)")
         .attr("xlink:href", function (v) {
           var url = v.imageUrl;
@@ -194,7 +196,6 @@ function wikiGraph()
 
     function addViewNode(v, startpos) {
       v.viewgraphid = viewgraph.nodes.length;
-
       if (typeof startpos !== 'undefined') {
         v.x = startpos.x;
         v.y = startpos.y;
@@ -205,15 +206,13 @@ function wikiGraph()
     function click(node) {
       $("#wikipediaArticleLink").attr('href', 'http://en.wikipedia.org/wiki/' + node.title);
       $("#wikipediaArticleLinkLabel").text(node.title);
-      $('#articleContent').text(node.summaryText);
-      //if (node.color !== red)
-      if (node.expanded || !node.links || node.links.length === 0)
+      //$('#articleContent').text(node.summaryText);
+      if (node.color !== red)
       {
         return;
       }
-      var focus = modelgraph.getNode(node.title, node.getDomCompatibleRid());
+      var focus = modelgraph.getNode(node.title);
       refocus(focus);
-      node.expanded = true;
     }
 
     function update() {
@@ -242,8 +241,7 @@ function wikiGraph()
         .data(viewgraph.nodes, function (d) { return d.viewgraphid; })
 
       var nodeEnter = node.enter().append("g")
-        //.attr("id", function (d) { return d.getTitle() })
-        .attr("id", function (d) { return d.getDomCompatibleRid() })
+        .attr("id", function (d) { return StringUtils.encodeID(d.title) })
         .attr("class", "node" )
         .on("mousedown", function () { nodeMouseDown = true; }) // recording the mousedown state allows us to differentiate dragging from panning
         .on("mouseup", function () { nodeMouseDown = false; })
@@ -254,7 +252,7 @@ function wikiGraph()
         .on('mouseover', tip.show)
         .on('mouseout', tip.hide);
 
-      nodeEnter.append("g").attr("id", function (d) { return d.getDomCompatibleRid() + "_spikes" })
+      nodeEnter.append("g").attr("id", function (d) { return StringUtils.encodeID(d.title) + "_spikes" })
         .attr("transform", "translate(3,3)");
 
       nodeEnter.append("rect")

@@ -1,0 +1,1 @@
+DELETE FROM article WHERE array_length(links, 1) = 1;

@@ -2,109 +2,128 @@
 var express = require('express');
 var router = express.Router();
 var Promise = require('bluebird');
-var Oriento = require('oriento');
+var pg = require('pg');
+var connectionString = process.env.DATABASE_URL || 'postgres://localhost:5432/wikimap';
+//var connectionString = process.env.DATABASE_URL || 'postgres://localhost:5432/wikimap ';
 var request = Promise.promisify(require('request'));
 
 var MAX_NUMBER_OF_LINKS = 4;
 var DEFAULT_LINK_LENGTH = 20;
 
-var server = new Oriento({
-  host: 'localhost',
-  port: 2424,
-  //username: 'root',
-  username: 'root',
-  password: 'admin'
-  //password: 'password'
-});
-
-var graph = server.use("wikipediaOrientDb");
-console.log('Using database:' + graph.name);
-
-/**
- * Find articles LIKE passed in title.
- */
 router.get('/findArticles', function(req, res) {
+  var results = [];
   var titleStr = trim(req.query.title);
-  var titleStrEndKey = titleStr + "z";
-  var queryStr = "select key from index:V.title where key >= '" + titleStr + "' and key <= '" + titleStrEndKey + "' limit 10";
-  if (titleStr !== null){
-    graph.query(queryStr, {
-        params: {
-            //keyTitle: titleStr,
-            //keyTitleAltered: titleStrEndKey
-        }
-        //limit: 10
-    }).then(function (response){
-        res.json(response);
+  pg.connect(connectionString, function(err, client, done) {
+    var query = client.query("SELECT id, title FROM article WHERE LOWER(title) LIKE LOWER($1) LIMIT 10", [titleStr + '%']);
+    query.on('row', function(row) {
+      results.push(row);
     });
-  }
-  else{
-    res.send(null);
-  }
-});
 
-router.get('/getArticleInfo', function(req, res) {
-  var titleStr = req.query.title[1];
-  var promise = getArticlePromise(titleStr);
-  var nodes = [];
-  var links = [];
-  promise.then(function(rawArticle) {
-    if (rawArticle && rawArticle[0]) {
-      var article = rawArticle[0];
-      var articleTitle = article.title;
-      var rid = article['@rid'].toString().substr(1);
-      var unknownThumbnail = 'http://upload.wikimedia.org/wikipedia/commons/3/37/No_person.jpg';
+    query.on('end', function() {
+      client.end();
+      return res.json(results);
+    });
 
-      var url = 'http://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=100&titles=' + articleTitle;
-      request(url).then(function(rawResponse) {
-        var response = rawResponse[0];
-
-        if (response.statusCode !== 200) {
-          res.json({nodes: [], rid: rid, imageUrl: unknownThumbnail});
-        }
-
-        var imageInfo = JSON.parse(response.body);
-        var pages = imageInfo.query.pages;
-        var pageId;
-        for (var key in pages) {
-          pageId = key;
-        }
-
-        var summaryUrl = 'https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&pageids=' + pageId;
-
-        request(summaryUrl).then(function(rawResponse) {
-
-          var summaryInfo = JSON.parse(rawResponse[0].body);
-          var summaryText = summaryInfo.query.pages[pageId].extract;
-          var thumbnail = pages[pageId].thumbnail;
-          var sourceImage;
-          if (typeof thumbnail === 'undefined' || typeof thumbnail.source === 'undefined') {
-            sourceImage = unknownThumbnail;
-          }
-          else {
-            sourceImage = thumbnail.source;
-          }
-
-          if (typeof article.out_contains !== 'undefined') {
-            var prefetchedRecords = article.out_contains._prefetchedRecords;
-            var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
-            addArticleToArrays(article, randomLinks, nodes, links);
-            res.json({nodes: nodes, rid: rid, imageUrl: sourceImage, summaryText: summaryText});
-          }
-          else{
-            res.json({nodes: [], rid: rid, imageUrl: sourceImage, summaryText: summaryText});
-          }
-        });
-      });
+    if(err) {
+      console.log(err);
     }
-  }).catch(function(e) {
-    console.log(e);
   });
 });
 
-var getArticlePromise = function(titleStr){
-  return graph.select().from('V').where({title: titleStr}).limit(1).fetch('out_contains:1 out_contains.in:1').all();
-  //return graph.select().from('V').where({title: titleStr}).limit(1).all();
+router.get('/getArticleInfo', function(req, res) {
+  var results = [];
+  var titleStr = req.query.title.toLowerCase();
+  //var promise = getArticlePromise(titleStr, articleId);
+  var links = [];
+
+  pg.connect(connectionString, function(err, client, done) {
+    var query = client.query("SELECT * FROM article WHERE LOWER(title) = LOWER($1)", [titleStr]);
+    query.on('row', function(row) {
+      results.push(row);
+    });
+
+    query.on('end', function() {
+      client.end();
+      var unknownThumbnail = 'http://upload.wikimedia.org/wikipedia/commons/3/37/No_person.jpg';
+      //return res.json({nodes: [], rid: rid, imageUrl: unknownThumbnail});
+      return res.json(results);
+    });
+
+    if(err) {
+      console.log(err);
+    }
+  });
+
+
+
+
+
+
+  //promise.then(function(rawArticle) {
+  //  if (rawArticle && rawArticle[0]) {
+  //    var article = rawArticle[0];
+  //    var articleTitle = article.title;
+  //    var rid = article['@rid'].toString().substr(1);
+  //    var unknownThumbnail = 'http://upload.wikimedia.org/wikipedia/commons/3/37/No_person.jpg';
+  //
+  //    if (typeof article.out_contains !== 'undefined') {
+  //      var prefetchedRecords = article.out_contains._prefetchedRecords;
+  //      var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
+  //      addArticleToArrays(article, randomLinks, nodes, links);
+  //      res.json({nodes: nodes, rid: rid, imageUrl: unknownThumbnail});
+  //    }
+  //    else{
+  //      res.json({nodes: [], rid: rid, imageUrl: unknownThumbnail});
+  //    }
+
+      //var url = 'http://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=100&titles=' + articleTitle;
+      //request(url).then(function(rawResponse) {
+      //  var response = rawResponse[0];
+      //
+      //  if (response.statusCode !== 200) {
+      //    res.json({nodes: [], rid: rid, imageUrl: unknownThumbnail});
+      //  }
+      //
+      //  var imageInfo = JSON.parse(response.body);
+      //  var pages = imageInfo.query.pages;
+      //  var pageId;
+      //  for (var key in pages) {
+      //    pageId = key;
+      //  }
+      //
+      //  var summaryUrl = 'https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&pageids=' + pageId;
+      //
+      //  request(summaryUrl).then(function(rawResponse) {
+      //    var summaryInfo = JSON.parse(rawResponse[0].body);
+      //    var summaryText = summaryInfo.query.pages[pageId].extract;
+      //    var thumbnail = pages[pageId].thumbnail;
+      //    var sourceImage;
+      //    if (typeof thumbnail === 'undefined' || typeof thumbnail.source === 'undefined') {
+      //      sourceImage = unknownThumbnail;
+      //    }
+      //    else {
+      //      sourceImage = thumbnail.source;
+      //    }
+      //
+      //    if (typeof article.out_contains !== 'undefined') {
+      //      var prefetchedRecords = article.out_contains._prefetchedRecords;
+      //      var randomLinks = getRandomLinksFromArticle(prefetchedRecords);
+      //      addArticleToArrays(article, randomLinks, nodes, links);
+      //      res.json({nodes: nodes, rid: rid, imageUrl: sourceImage, summaryText: summaryText});
+      //    }
+      //    else{
+      //      res.json({nodes: [], rid: rid, imageUrl: sourceImage, summaryText: summaryText});
+      //    }
+      //  });
+      //});
+    //}
+  //}).catch(function(e) {
+  //  console.log(e);
+  //});
+});
+
+var getArticlePromise = function(articleId){
+  return graph.select().from('#' + rid).fetch('out_contains:1 out_contains.in:1').all();
 };
 
 var getRandomLinksFromArticle = function(links){

@@ -6,44 +6,54 @@ var Node = require('./node.js');
 var Edge = require('./edge.js');
 var Promise = require('bluebird');
 var $ = require('jquery');
+var StringUtils = new (require('./string_utils.js'));
 
 function Graph() {
   this.nodes = {};
   this.edges = {};
 
-  Graph.prototype.addNode = function (title, rid) {
-    var node = new Node(title, rid);
-    return this.nodes[node.getDomCompatibleRid()] = node;
+  Graph.prototype.addNode = function (title) {
+    var node = new Node(title);
+    return this.nodes[StringUtils.encodeID(node.title)] = node;
   };
 
-  Graph.prototype.getNode = function (title, rid, addViewNode) {
+  Graph.prototype.getNode = function (title, callback) {
     var _this = this;
-    if (rid in this.nodes) {
-      return this.nodes[rid];
+    var encodedArticleTitle = StringUtils.encodeID(title);
+    if (encodedArticleTitle in this.nodes) {
+      return this.nodes[encodedArticleTitle];
     }
 
-    var promise = articlePromise(title, rid);
+    var node = _this.addNode(title);
+    if (callback) {
+      callback(node);
+    }
+
+    var promise = articlePromise(title);
     return promise.then(function (data) {
-      var node = _this.addNode(title, data.rid);
       node.imageUrl = data.imageUrl;
       node.summaryText = data.summaryText;
-      addViewNode(node);
 
-      if (typeof data.nodes !== 'undefined') {
-        data.nodes.map(function (nodeObject) {
-          var linkNodeObject = new Node(nodeObject.title, nodeObject.rid);
-          if (node.getDomCompatibleRid() !== linkNodeObject.getDomCompatibleRid()) {
-            node.links.push(nodeObject);
-          }
-        });
+      if (typeof data[0] !== 'undefined' && data[0].links !== null) {
+        node.links = data[0].links.splice(0,3);
       }
+      else {
+        node.links = [];
+      }
+
+        //data[0].links.map(function (nodeObject) {
+        //  var linkNodeObject = new Node(nodeObject.title);
+        //  if (node.getDomCompatibleTitle() !== linkNodeObject.getDomCompatibleTitle()) {
+        //    node.links.push(nodeObject);
+        //  }
+        //});
 
       return node;
     });
   };
 
   Graph.prototype.addEdge = function (fromNode, toNode) {
-    var edge = new Edge(fromNode.getDomCompatibleRid(), toNode.getDomCompatibleRid());
+    var edge = new Edge(StringUtils.encodeID(fromNode.title), StringUtils.encodeID(toNode.title));
     var edgeName = edge.toString();
     if (!(edgeName in this.edges)) {
       this.edges[edgeName] = edge;
@@ -54,22 +64,20 @@ function Graph() {
 
   Graph.prototype.isFullyExpanded = function (node) {
     var _this = this;
-    return node.links && node.links.every(function(element) {
-     var elementNode = new Node(element.title, element.rid);
-        return elementNode.getDomCompatibleRid() in _this.nodes;
+    return node.links && node.links.every(function(articleTitle) {
+     var elementNode = new Node(articleTitle);
+        return StringUtils.encodeID(elementNode.title) in _this.nodes;
     })
   };
 
   Graph.prototype.expandNeighbours = function (node, callback) {
     var _this = this;
-    var promisesArray = node.links.map(function (nodeObject) {
-      var linkNodeObject = new Node(nodeObject.title, nodeObject.rid);
-      if (node.getDomCompatibleRid() !== linkNodeObject.getDomCompatibleRid()) {
-        return _this.getNode(linkNodeObject.title, null, function(vertex) {
+    var promisesArray = node.links.map(function (articleTitle) {
+      var linkNodeObject = new Node(articleTitle);
+        return _this.getNode(linkNodeObject.title, function(vertex) {
           _this.addEdge(node, vertex);
           callback(vertex);
         });
-      }
     });
 
     return Promise.all(promisesArray);
@@ -77,11 +85,11 @@ function Graph() {
   };
 }
 
-function articlePromise(title, rid) {
+function articlePromise(title) {
   return Promise.resolve(
     $.ajax({
-      url: 'http://localhost:3000/wikimaps/getArticleInfo?title',
-      data: {title: title, rid: rid},
+      url: 'http://localhost:3000/wikimaps/getArticleInfo',
+      data: {title: title},
       dataType: 'json'
     }));
 }

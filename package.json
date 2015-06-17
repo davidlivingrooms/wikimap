@@ -27,15 +27,16 @@
     "watchify": "^2.1.1"
   },
   "dependencies": {
-    "express": "~4.0.0",
-    "static-favicon": "~1.0.0",
-    "morgan": "~1.0.0",
-    "cookie-parser": "~1.0.1",
     "body-parser": "~1.0.0",
+    "cookie-parser": "~1.0.1",
     "debug": "~0.7.4",
     "ejs": "~0.8.5",
-    "stylus": "0.42.3",
-    "mongoose": "^3.8.19"
+    "express": "~4.0.0",
+    "mongoose": "^3.8.19",
+    "morgan": "~1.0.0",
+    "pg": "^4.4.0",
+    "static-favicon": "~1.0.0",
+    "stylus": "0.42.3"
   },
   "browserify-shim": {
     "cola": "global:cola",

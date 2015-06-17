@@ -2,16 +2,15 @@
  * Created by david on 3/30/2015.
  */
 var Promise = require('bluebird');
+var StringUtils = new (require('./string_utils.js'));
 
-function Node(title, rid) {
+function Node(title) {
   this.title = title;
   this.links = [];
-  this.rid = rid;
   this.degree = 0;
 
-  Node.prototype.getDomCompatibleRid = function () {
-    var rid = this.rid;
-    return [rid.slice(0, 0), "element", rid.slice(0)].join('').replace(/:/g, '');
+  Node.prototype.getDomCompatibleTitle = function() {
+    return "article" + StringUtils.encodeID(title);//TODO this needs to be added to the string utils method
   };
 }
 

@@ -20,14 +20,17 @@ module.exports = {
       remote: {
         url: 'http://localhost:3000/wikimaps/findArticles?title=%QUERY',
         filter: function (articles) {
-          // Map the remote source JSON array to a JavaScript array
+          // Map the remote source JSsON array to a JavaScript array
           return $.map(articles, function (article) {
             return {
-              value: capitalizeWords(article.key)
+              value: capitalizeWords(article.title),
+              id: article.id
             };
           });
-        }
-      }
+        },
+        rateLimitWait: 1000
+      },
+      limit: 10
     });
 
     function capitalizeWords(str) {
@@ -41,8 +44,8 @@ module.exports = {
       displayKey: 'value',
       source: articles.ttAdapter()
     })
-    .bind('typeahead:selected', function(obj, selected) {
-      WikiGraph.initializeNewGraph(selected.value);
+    .bind('typeahead:selected', function(obj, selectedArticle) {
+      WikiGraph.initializeNewGraph(selectedArticle);
     })
     .off('blur');
   }
