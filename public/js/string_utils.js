@@ -5,7 +5,7 @@
 function StringUtils() {
   StringUtils.prototype.encodeID = function(s) {
     if (s==='') return '_';
-    return 'article' + s.replace(/[^a-zA-Z0-9.-]/g, function(match) {
+    return 'article' + s.replace(/[^a-zA-Z0-9]/g, function(match) {
       return '_'+match[0].charCodeAt(0).toString(16)+'_';
     });
   };

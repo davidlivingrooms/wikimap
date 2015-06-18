@@ -33,21 +33,7 @@ function Graph() {
     return promise.then(function (data) {
       node.imageUrl = data.imageUrl;
       node.summaryText = data.summaryText;
-
-      if (typeof data[0] !== 'undefined' && data[0].links !== null) {
-        node.links = data[0].links.splice(0,3);
-      }
-      else {
-        node.links = [];
-      }
-
-        //data[0].links.map(function (nodeObject) {
-        //  var linkNodeObject = new Node(nodeObject.title);
-        //  if (node.getDomCompatibleTitle() !== linkNodeObject.getDomCompatibleTitle()) {
-        //    node.links.push(nodeObject);
-        //  }
-        //});
-
+      node.links = data.links;
       return node;
     });
   };
@@ -81,7 +67,6 @@ function Graph() {
     });
 
     return Promise.all(promisesArray);
-    //TODO what if attached to previous node?
   };
 }
 

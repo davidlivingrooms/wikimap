@@ -100,7 +100,6 @@ function wikiGraph()
     // get first node
     var d = modelgraph.getNode(rootArticle.value, addViewNode);
     d.then(function (startNode) {
-      //addViewNode(startNode);
       refocus(startNode);
     });
 
@@ -108,13 +107,15 @@ function wikiGraph()
       var neighboursExpanded = modelgraph.expandNeighbours(focus, function (v) {
         if (!inView(v)){
           addViewNode(v, focus);
-          //loadImage(v);
         }
       });
       refreshViewGraph();
-      //loadImage(focus);
-      neighboursExpanded.then(function f() {//TODO why $.when. just use the promise
+      loadImage(focus);
+      neighboursExpanded.then(function (neighbors) {
         refreshViewGraph();
+        neighbors.map(function (node) {
+          loadImage(node);
+        });
       });
     }
 
@@ -206,7 +207,9 @@ function wikiGraph()
     function click(node) {
       $("#wikipediaArticleLink").attr('href', 'http://en.wikipedia.org/wiki/' + node.title);
       $("#wikipediaArticleLinkLabel").text(node.title);
-      //$('#articleContent').text(node.summaryText);
+      $('#articleContent').text(node.summaryText);
+      $('#articleImage').attr("src",node.imageUrl);
+
       if (node.color !== red)
       {
         return;

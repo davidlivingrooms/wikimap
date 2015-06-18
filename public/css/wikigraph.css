@@ -16,3 +16,8 @@
     line-height: 1;
     color: black;
 }
+.img-thumbnail {
+    width: auto;
+    height: 200px;
+    float: left;
+}
