@@ -20,4 +20,10 @@
     width: auto;
     height: 200px;
     float: left;
+    visibility: hidden;
+}
+
+.loading {
+    background: transparent url('/images/spinner.gif') no-repeat scroll right center content-box;
+    background-size: contain;
 }

@@ -11,6 +11,7 @@ require('typeahead.js');
 module.exports = {
 
   initialize: function(){
+    $('.img-thumbnail').hide();
     // Instantiate the Bloodhound suggestion engine
     var articles = new Bloodhound({
       datumTokenizer: function (datum) {
@@ -23,12 +24,17 @@ module.exports = {
           // Map the remote source JSsON array to a JavaScript array
           return $.map(articles, function (article) {
             return {
-              value: capitalizeWords(article.title),
-              id: article.id
+              value: capitalizeWords(article.title)
             };
           });
         },
-        rateLimitWait: 1000
+        ajax: {
+          beforeSend: function(){$('.typeahead').addClass('loading');},
+          complete: function(){
+            $('.typeahead').removeClass('loading');
+          }
+        },
+        rateLimitWait: 500
       },
       limit: 10
     });
@@ -44,10 +50,10 @@ module.exports = {
       displayKey: 'value',
       source: articles.ttAdapter()
     })
-    .bind('typeahead:selected', function(obj, selectedArticle) {
-      WikiGraph.initializeNewGraph(selectedArticle);
-    })
-    .off('blur');
+      .bind('typeahead:selected', function(obj, selectedArticle) {
+        WikiGraph.initializeNewGraph(selectedArticle);
+      })
+      .off('blur');
   }
 };
 

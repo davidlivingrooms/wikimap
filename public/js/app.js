@@ -3,7 +3,9 @@
  */
 var wikisearch = require("./wikisearch");
 var domready = require("domready");
+var WikiGraph = require("./wikigraph");
 
 domready(function(){
-    wikisearch.initialize()
+    wikisearch.initialize();
+    WikiGraph.initializeNewGraph({value : "Brenton Wood"});
 });

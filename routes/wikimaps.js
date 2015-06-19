@@ -6,14 +6,13 @@ var pg = require('pg');
 var connectionString = process.env.DATABASE_URL || 'postgres://localhost:5432/wikimap';
 var request = Promise.promisify(require('request'));
 
-var MAX_NUMBER_OF_LINKS = 4;
-var DEFAULT_LINK_LENGTH = 20;
+var MAX_NUMBER_OF_LINKS = 5;
 
 router.get('/findArticles', function(req, res) {
   var results = [];
   var titleStr = trim(req.query.title);
   pg.connect(connectionString, function(err, client, done) {
-    var query = client.query("SELECT id, title FROM article WHERE LOWER(title) LIKE LOWER($1) LIMIT 10", [titleStr + '%']);
+    var query = client.query("select id, title from article where title ilike $1 ORDER BY title limit 10;", [titleStr + '%']);
     query.on('row', function(row) {
       results.push(row);
     });
@@ -31,17 +30,19 @@ router.get('/findArticles', function(req, res) {
 
 router.get('/getArticleInfo', function(req, res) {
   var results = [];
-  var titleStr = req.query.title.toLowerCase();
+  var titleStr = req.query.title;
 
   pg.connect(connectionString, function (err, client, done) {
-    var query = client.query("SELECT * FROM article WHERE LOWER(title) = LOWER($1)", [titleStr]);
+    //var query = client.query("SELECT * FROM article WHERE LOWER(title) = LOWER($1)", [titleStr]);
+    var query = client.query("SELECT * FROM article WHERE title = $1", [titleStr]);
     query.on('row', function (row) {
       results.push(row);
     });
 
     query.on('end', function () {
       client.end();
-      var unknownThumbnail = 'http://upload.wikimedia.org/wikipedia/commons/3/37/No_person.jpg';
+      //var unknownThumbnail = 'http://upload.wikimedia.org/wikipedia/commons/3/37/No_person.jpg';
+      var unknownThumbnail = 'https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg';
       var links = [];
       if (results[0] && results[0].links) {
         links = getRandomLinksFromArticle(results[0].links);
@@ -52,7 +53,7 @@ router.get('/getArticleInfo', function(req, res) {
         var response = rawResponse[0];
 
         if (response.statusCode !== 200) {
-          res.json({links: links, summaryText: "", imageUrl: unknownThumbnail});
+          res.json({links: links, summaryText: "", imageUrl: unknownThumbnail});//TODO pageid may still exist. Get Summary from page id at least
         }
 
         var imageInfo = JSON.parse(response.body);

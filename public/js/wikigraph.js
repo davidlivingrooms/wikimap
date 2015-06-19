@@ -13,21 +13,14 @@ var graph;
 module.exports = {
   initializeNewGraph: function(rootArticle) {
     d3.select("svg").remove();
-    drawGraph(rootArticle);
+    new WikiGraph(rootArticle);
   }
 };
 
-function drawGraph(rootArticle) {
-  graph = new wikiGraph("#svgdiv");
-  graph.start(rootArticle);
-}
-
-function wikiGraph()
+function WikiGraph(rootArticle)
 {
-  this.start = function(rootArticle) {
-    var width = 960,
-      height = 500,
-      imageScale = 0.1;
+    var width = 960;
+    var height = 500;
 
     var red = "rgb(254, 137, 137)";
 
@@ -101,6 +94,11 @@ function wikiGraph()
     var d = modelgraph.getNode(rootArticle.value, addViewNode);
     d.then(function (startNode) {
       refocus(startNode);
+      $('.img-thumbnail').css({
+        'display' : '',
+        'visibility' : 'visible'
+      });
+      populateArticleSummary(startNode);
     });
 
     function refocus(focus) {
@@ -147,33 +145,6 @@ function wikiGraph()
       update();
     }
 
-    function hintNeighbours(v) {
-      if (!v.links) return;
-      var hiddenEdges = v.links.length + 1 - v.degree;
-      var r = 2 * Math.PI / hiddenEdges;
-      for (var i = 0; i < hiddenEdges; ++i) {
-        var w = nodeWidth - 6,
-          h = nodeHeight - 6,
-          x = w / 2 + 25 * Math.cos(r * i),
-          y = h / 2 + 30 * Math.sin(r * i),
-          rect = new cola.vpsc.Rectangle(0, w, 0, h),
-          vi = rect.rayIntersection(x, y);
-        var dview = d3.select("#"+StringUtils.encodeID(v.title)+"_spikes");
-        dview.append("rect")
-          .attr("class", "spike")
-          .attr("rx", 1).attr("ry", 1)
-          .attr("x", 0).attr("y", 0)
-          .attr("width", 10).attr("height", 2)
-          .attr("transform", "translate("+vi.x+","+vi.y+") rotate("+(360*i/hiddenEdges)+")")
-          .on("click", function () { click(v) });
-      }
-    }
-
-    function unhintNeighbours(v) {
-      var dview = d3.select("#" + StringUtils.encodeID(v.title) + "_spikes");
-      dview.selectAll(".spike").remove();
-    }
-
     function inView(v) {
       return typeof v.viewgraphid !== 'undefined';
     }
@@ -204,12 +175,15 @@ function wikiGraph()
       viewgraph.nodes.push(v);
     }
 
-    function click(node) {
+    function populateArticleSummary(node) {
       $("#wikipediaArticleLink").attr('href', 'http://en.wikipedia.org/wiki/' + node.title);
       $("#wikipediaArticleLinkLabel").text(node.title);
       $('#articleContent').text(node.summaryText);
-      $('#articleImage').attr("src",node.imageUrl);
+      $('#articleImage').attr("src", node.imageUrl);
+    }
 
+    function click(node) {
+      populateArticleSummary(node);
       if (node.color !== red)
       {
         return;
@@ -249,8 +223,6 @@ function wikiGraph()
         .on("mousedown", function () { nodeMouseDown = true; }) // recording the mousedown state allows us to differentiate dragging from panning
         .on("mouseup", function () { nodeMouseDown = false; })
         .on("touchmove", function () { d3.event.preventDefault() })
-        .on("mouseenter", function (d) { hintNeighbours(d) }) // on mouse over nodes we show "spikes" indicating there are hidden neighbours
-        .on("mouseleave", function (d) { unhintNeighbours(d) })
         .call(d3cola.drag)
         .on('mouseover', tip.show)
         .on('mouseout', tip.hide);
@@ -294,11 +266,6 @@ function wikiGraph()
       return { x: x, X: X, y: y, Y: Y };
     }
 
-    function fullScreenCancel() {
-      outer.attr("width", width).attr("height", height);
-      zoomToFit();
-    }
-
     function zoomToFit() {
       var b = graphBounds();
       var w = b.X - b.x, h = b.Y - b.y;
@@ -308,5 +275,4 @@ function wikiGraph()
       zoom.translate([tx, ty]).scale(s);
       redraw(true);
     }
-  };
 }

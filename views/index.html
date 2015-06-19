@@ -1,12 +1,7 @@
 <!DOCTYPE HTML>
-<!--
-	Prologue by HTML5 UP
-	html5up.net | @n33co
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
 <html>
 	<head>
-		<title>Prologue by HTML5 UP</title>
+		<title>WikiGrapher</title>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		<meta name="description" content="" />
 		<meta name="keywords" content="" />
@@ -20,7 +15,6 @@
 		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
         <script type='text/javascript' src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"> </script>
         <script src="http://marvl.infotech.monash.edu/webcola/cola.v3.min.js"></script>
-		<script src='http://okfnlabs.org/wikipediajs/wikipedia.js'></script>
 		<script src="js/bundle.js"></script>
 		<noscript>
 			<link rel="stylesheet" href="css/skel.css" />
@@ -45,22 +39,9 @@
 				<div class="top">
 
 					<!-- Article search bar -->
-					<input class="typeahead form-control" type="text" placeholder="Wikipedia Articles">
+					<input class="typeahead form-control" type="text" placeholder="Search Wikipedia">
 					<!-- Nav -->
 						<nav id="nav">
-							<!--
-							
-								Prologue's nav expects links in one of two formats:
-								
-								1. Hash link (scrolls to a different section within the page)
-								
-								   <li><a href="#foobar" id="foobar-link" class="icon fa-whatever-icon-you-want skel-layers-ignoreHref"><span class="label">Foobar</span></a></li>
-
-								2. Standard link (sends the user to another page/site)
-
-								   <li><a href="http://foobar.tld" id="foobar-link" class="icon fa-whatever-icon-you-want"><span class="label">Foobar</span></a></li>
-							
-							-->
 							<ul>
 								<li><a href="#portfolio" id="portfolio-link" class="skel-layers-ignoreHref"><span class="icon fa-th">Graph</span></a></li>
 								<li><a href="#about" id="about-link" class="skel-layers-ignoreHref"><span class="icon fa-file-word-o">Article</span></a></li>
@@ -74,7 +55,7 @@
 					<!-- Social Icons -->
 						<ul class="icons">
 							<li><a href="https://github.com/GrumpyPants/wikimap" class="icon fa-github"><span class="label">Github</span></a></li>
-							<li><a href="#" class="icon fa-envelope"><span class="label">Email</span></a></li>
+							<li><a href="mailto:davidlivingrooms@gmail.com" class="icon fa-envelope"><span class="label">Email</span></a></li>
 						</ul>
 				
 				</div>
@@ -87,10 +68,10 @@
 					<section id="portfolio" class="two section">
 						<div class="container graphContainer">
 							<header>
-								<h2>Graph container</h2>
+								<h3>WikiGrapher</h3>
 							</header>
-							<div id="chart" class="graph"/>
-							<div id="loadingAnimation" class="loadingAnimation"/>
+							<div id="chart" class="graph"></div>
+							<div id="loadingAnimation" class="loadingAnimation"></div>
 						</div>
 					</section>
 
@@ -102,11 +83,6 @@
 							</div>
                             <a id="wikipediaArticleLink"><span class="label" id="wikipediaArticleLinkLabel"></span></a>
                             <div id="articleContent"></div>
-                            <!--<header>-->
-                            <!--<h2>Article View</h2>-->
-                            <!--</header>-->
-
-                            <!--<a id="wikipediaArticleLink" style="visibility: hidden"><span class="label" id="wikipediaArticleLinkLabel"></span></a>-->
 						</div>
 					</section>
 			
