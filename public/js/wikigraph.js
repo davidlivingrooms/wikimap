@@ -8,7 +8,6 @@ var cola = require('cola');
 var Promise = require('bluebird');
 var Graph = require('./graph.js');
 var StringUtils = new (require('./string_utils.js'));
-var graph;
 
 module.exports = {
   initializeNewGraph: function(rootArticle) {
@@ -29,8 +28,8 @@ function WikiGraph(rootArticle)
       .size([width, height]);
 
     var outer = d3.select("#chart").append("svg")
-      .attr("width", width)
-      .attr("height", height)
+      .attr("viewBox", "0 0 " + width + " " + height )
+      .attr("preserveAspectRatio", "xMinYMin")
       .attr("pointer-events", "all");
 
     //Set up tooltip

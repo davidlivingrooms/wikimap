@@ -73,7 +73,7 @@ function Graph() {
 function articlePromise(title) {
   return Promise.resolve(
     $.ajax({
-      url: 'http://localhost:3000/wikimaps/getArticleInfo',
+      url: 'http://wikigrapher.com/wikimaps/getArticleInfo',
       data: {title: title},
       dataType: 'json'
     }));

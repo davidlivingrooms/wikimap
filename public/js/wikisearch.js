@@ -19,7 +19,7 @@ module.exports = {
       },
       queryTokenizer: Bloodhound.tokenizers.whitespace,
       remote: {
-        url: 'http://localhost:3000/wikimaps/findArticles?title=%QUERY',
+        url: 'http://wikigrapher.com/wikimaps/findArticles?title=%QUERY',
         filter: function (articles) {
           // Map the remote source JSsON array to a JavaScript array
           return $.map(articles, function (article) {

@@ -33,7 +33,6 @@ router.get('/getArticleInfo', function(req, res) {
   var titleStr = req.query.title;
 
   pg.connect(connectionString, function (err, client, done) {
-    //var query = client.query("SELECT * FROM article WHERE LOWER(title) = LOWER($1)", [titleStr]);
     var query = client.query("SELECT * FROM article WHERE title = $1", [titleStr]);
     query.on('row', function (row) {
       results.push(row);
@@ -41,7 +40,6 @@ router.get('/getArticleInfo', function(req, res) {
 
     query.on('end', function () {
       client.end();
-      //var unknownThumbnail = 'http://upload.wikimedia.org/wikipedia/commons/3/37/No_person.jpg';
       var unknownThumbnail = 'https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg';
       var links = [];
       if (results[0] && results[0].links) {
