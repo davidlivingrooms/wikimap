@@ -1,7 +1,7 @@
 WikiGrapher
 =======
 
-
+WikiGrapher is a data visualization that lets you easily traverse Wikipedia articles that link to each other. 
 
 ## Copyright and license
 
