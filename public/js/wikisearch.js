@@ -24,7 +24,7 @@ module.exports = {
           // Map the remote source JSsON array to a JavaScript array
           return $.map(articles, function (article) {
             return {
-              value: capitalizeWords(article.title)
+              value: article.title
             };
           });
         },
@@ -38,10 +38,6 @@ module.exports = {
       },
       limit: 10
     });
-
-    function capitalizeWords(str) {
-      return str.replace(/\b./g, function(m){ return m.toUpperCase(); });
-    }
 
     articles.initialize();
 
